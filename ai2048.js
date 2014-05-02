@@ -156,6 +156,44 @@ function play(grid, direction) {
   return {point:ret.point, grid:ret.grid, movable:ret.movable};
 }
 
+function static_score(grid) {
+  var values = [
+    [100, 10, 10, 100],
+    [10, -30, -30, 10],
+    [10, -30, -30, 10],
+    [100, 10, 10, 100]
+  ];
+  var sum = 0;
+  for (var i = 0; i < 4; i++) {
+    for (var j = 0; j < 4; j++) {
+      sum += values[i][j] * grid[i][j];
+    }
+  }
+  return sum;
+}
+
+function get_score(grid, direction, depth) {
+  var ret = move(grid, direction);
+  var zeros = zero_places(ret.grid);
+  var minscore = 0;
+  var numbers = [2, 4];
+  for (var i = 0; i < zeros.length; i++) {
+    for (var j = 0; j < 2; j++) {
+      ret.grid[zeros[i].i][zeros[i].j] = numbers[j];
+      if (depth == 0) {
+        minscore = Math.min(minscore, static_score(ret.grid);
+      } else {
+        var maxscore = 0;
+        for (var k = 0; k < 4; k++) {
+          maxscore = Math.max(maxscore, get_score(ret.grid, k, depth - 1);
+        }
+      }
+    }
+    ret.grid[zeros[i].i][zeros[i].j] = 0;
+  }
+  return minscore + ret.point;
+}
+
 function calc(grid) {
   console.log("grid_begin: "+dump(grid));
   var maxp = 0;
