@@ -1,4 +1,4 @@
-var service_url = 'http://2048.semantics3.com/hi/start/json';
+var service_url = 'http://2048.semantics3.com';
 var session_id = "";
 var interval = 100;
 var stop = false;
@@ -23,7 +23,7 @@ function view(obj) {
 
 function run() {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', service_url);
+  xhr.open('GET', service_url+'/hi/start/json');
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4 && xhr.status === 200) {
       data = xhr.responseText;
@@ -151,7 +151,7 @@ function ai_run(grid) {
   var move_dir = calc(grid);
   console.log("moveto: "+move_dir);
   var xhr = new XMLHttpRequest();
-  var url = 'http://2048.semantics3.com/hi/state/'+session_id+'/move/'+move_dir+'/json';
+  var url = service_url+'/hi/state/'+session_id+'/move/'+move_dir+'/json';
   console.log(url);
   xhr.open('GET', url);
   xhr.onreadystatechange = function() {
