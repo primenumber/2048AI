@@ -129,6 +129,33 @@ function move(grid, direction) {
   return {point:ret.point,grid:newgrid,movable:ret.movable};
 }
 
+function zero_places(grid) {
+  zeros = [];
+  for (var i = 0; i < 4; i++) {
+    for (var j = 0; j < 4; j++) {
+      if (grid[i][j] == 0) {
+        zeros.push({i:i,j:j});
+      }
+    }
+  }
+  return zeros;
+}
+
+function create_new_number(grid) {
+  var zeros = zero_places(grid);
+  var zero_number = zeros.length;
+  var r = Math.random();
+  var n = Math.floor(r * zero_number);
+  grid[zeros[n].i][zeros[n].j] = Math.random() >= 0.5 ? 2 : 4;
+  return grid;
+}
+
+function play(grid, direction) {
+  var ret = move(grid, direction);
+  create_new_number(ret.grid);
+  return {point:ret.point, grid:ret.grid, movable:ret.movable};
+}
+
 function calc(grid) {
   console.log("grid_begin: "+dump(grid));
   var maxp = 0;
