@@ -1,7 +1,8 @@
-var service_url = 'http://2048.semantics3.com';
+var service_url = 'http://ring:2048';
 var session_id = "";
 var interval = 100;
 var stop = false;
+var width = 4;
 
 function view(obj) {
   for (var i = 0; i < 4; i++) {
@@ -158,15 +159,40 @@ function play(grid, direction) {
 
 function static_score(grid) {
   var values = [
-    [100, 10, 10, 100],
-    [10, -30, -30, 10],
-    [10, -30, -30, 10],
-    [100, 10, 10, 100]
+    [120,  20,  20, 120],
+    [ 20, -20, -20,  20],
+    [ 20, -20, -20,  20],
+    [120,  20,  20, 120]
   ];
   var sum = 0;
+  var nums = [];
   for (var i = 0; i < 4; i++) {
     for (var j = 0; j < 4; j++) {
+      nums.push({num:grid[i][j],i:i,j:j});
       sum += values[i][j] * grid[i][j];
+    }
+  }
+  nums.sort(function(lhs, rhs) {
+    if (lhs.num > rhs.num) {
+      return -1;
+    } else if (lhs.num < rhs.num) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+  for (var i = 0; i < nums.length - 1; i++) {
+    var smaller_num = nums[i+1].num;
+    for (var j = 1; i + j < nums.length; j++) {
+      if (nums[i+j] != smaller_num) break;
+      var di = nums[i].i - nums[i+j].i;
+      var dj = nums[i].j - nums[i+j].j;
+      var d = di * di + dj * dj;
+      if (d == 1) {
+        sum += 30 * nums[i].num;
+      } else {
+        sum -= 30 * nums[i].num;
+      }
     }
   }
   return sum;
@@ -174,41 +200,39 @@ function static_score(grid) {
 
 function get_score(grid, direction, depth) {
   var ret = move(grid, direction);
+  if (!ret.movable) return Number.NEGATIVE_INFINITY;
+  if (depth == 0) return ret.point * 100 + static_score(ret.grid);
   var zeros = zero_places(ret.grid);
-  var minscore = 0;
+  var minscore = Number.POSITIVE_INFINITY;
   var numbers = [2, 4];
-  for (var i = 0; i < zeros.length; i++) {
-    for (var j = 0; j < 2; j++) {
-      ret.grid[zeros[i].i][zeros[i].j] = numbers[j];
-      if (depth == 0) {
-        minscore = Math.min(minscore, static_score(ret.grid);
-      } else {
-        var maxscore = 0;
-        for (var k = 0; k < 4; k++) {
-          maxscore = Math.max(maxscore, get_score(ret.grid, k, depth - 1);
-        }
-      }
+  for (var i = 0; i < width; i++) {
+    var index = Math.floor(Math.random() * zeros.length);
+    var num = numbers[Math.floor(Math.random() * 2)];
+    var gi = zeros[index].i;
+    var gj = zeros[index].j;
+    ret.grid[gi][gj] = num;
+    var maxscore = Number.NEGATIVE_INFINITY;
+    for (var k = 0; k < 4; k++) {
+      maxscore = Math.max(maxscore, get_score(ret.grid, k, depth - 1));
     }
-    ret.grid[zeros[i].i][zeros[i].j] = 0;
+    if (maxscore != Number.NEGATIVE_INFINITY) {
+      minscore = Math.min(minscore, maxscore);
+    }
+    ret.grid[gi][gj] = 0;
   }
-  return minscore + ret.point;
+  return minscore + ret.point * 100;
 }
 
 function calc(grid) {
-  console.log("grid_begin: "+dump(grid));
-  var maxp = 0;
+  var maxp = Number.NEGATIVE_INFINITY;
   var maxi = -1;
   for (var i = 0; i < 4; i++) {
-    var ret = move(grid, i);
-    console.log(i+': point='+ret.point+", movable: "+ret.movable);
-    console.log("table: "+dump(ret.grid));
-    if (!ret.movable) continue;
-    if (maxp <= ret.point) {
-      maxp = ret.point;
+    var score = get_score(grid, i, 2);
+    if (maxp <= score) {
+      maxp = score;
       maxi = i;
     }
   }
-  console.log("grid_end: "+dump(grid));
   return maxi;
 }
 
