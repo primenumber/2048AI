@@ -73,7 +73,7 @@ int sorted_score(const table_t& table) {
 }
 
 int corner_score(const table_t& table) {
-  return table[0][0] + table[0][3] + table[3][0] + table[3][3];
+  return std::max(table[0][0] ,std::max(table[0][3] ,std::max(table[3][0] ,table[3][3])));
 }
 
 int static_score(const table_t& table) {
