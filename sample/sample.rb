@@ -1,7 +1,7 @@
 require 'json'
 require 'open-uri'
 
-HOSTNAME = 'http://localhost:8080'
+HOSTNAME = 'http://ring:2048'
 START_URI = HOSTNAME + '/hi/start/json'
 
 # 移動方向を表す定数
