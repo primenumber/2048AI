@@ -44,7 +44,7 @@ int main() {
   int max_i = -1;
   int alpha = -1000000000;
   int beta = 1000000000;
-  const int kDEPTH = 3;
+  const int kDEPTH = 2;
   for (int i = 0; i < 4; ++i) {
     if (!movable(table, i)) continue;
     int score = calc(table, i, kDEPTH, alpha, beta);
