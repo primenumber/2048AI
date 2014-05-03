@@ -2,6 +2,12 @@
 #include <array>
 #include "score.hpp"
 
+constexpr int sorted_weight  = 100;
+constexpr int corner_weight  = 100;
+constexpr int zero_weight    =  10;
+constexpr int same_weight    =  15;
+constexpr int movable_weight =  50;
+
 int static_score(const table_t& table) {
   int zero_number = 0;
   int same_tile_number = 0;
@@ -44,13 +50,17 @@ int static_score(const table_t& table) {
         sorted[i+12] = false;
     }
   }
-  int sum = 0;
+  int sorted_score = 0;
   for (int i = 0; i < 16; ++i)
     if (sorted[i])
-      sum += sorted_sum[i];
-  sum += table[0][0] + table[0][3] + table[3][0] + table[3][3];
-  if (movable_number <= 1) {
-    sum -= 100 * max_number;
-  }
-  return sum * 100 + same_tile_number * max_number * 15 + zero_number * max_number * 10;
+      sorted_score += sorted_sum[i];
+  int corner_score = table[0][0] + table[0][3] + table[3][0] + table[3][3];
+  int movable_score = 0;
+  if (movable_number <= 1)
+    movable_score = max_number;
+  return sorted_score * sorted_weight
+      + corner_score * corner_weight
+      + same_tile_number * max_number * same_weight
+      + zero_number * max_number * zero_weight
+      + movable_score * movable_weight;
 }
