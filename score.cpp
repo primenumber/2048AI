@@ -6,6 +6,10 @@ int static_score(const table_t& table) {
   int zero_number = 0;
   int same_tile_number = 0;
   int max_number = 0;
+  int movable_number = 0;
+  for (int i = 0; i < 4; ++i) {
+    if (movable(table)) ++movable_number;
+  }
   std::array<bool, 16> sorted;
   std::array<int, 16> sorted_sum;
   std::fill(std::begin(sorted), std::end(sorted), true);
@@ -45,5 +49,6 @@ int static_score(const table_t& table) {
     if (sorted[i])
       sum += sorted_sum[i];
   sum += table[0][0] + table[0][3] + table[3][0] + table[3][3];
+  sum -= max_number * 100 if movable_number <= 1
   return sum * 100 + same_tile_number * max_number * 15 + zero_number * max_number * 10;
 }
