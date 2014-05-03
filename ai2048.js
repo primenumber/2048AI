@@ -2,7 +2,6 @@ var service_url = 'http://ring:2048';
 var session_id = "";
 var interval = 100;
 var stop = false;
-var width = 4;
 
 function view(obj) {
   for (var i = 0; i < 4; i++) {
@@ -159,10 +158,10 @@ function play(grid, direction) {
 
 function static_score(grid) {
   var values = [
-    [120,  20,  20, 120],
-    [ 20, -20, -20,  20],
-    [ 20, -20, -20,  20],
-    [120,  20,  20, 120]
+    [180, -20, -20, 180],
+    [-20, -80, -80, -20],
+    [-20, -80, -80, -20],
+    [180, -20, -20, 180]
   ];
   var sum = 0;
   var nums = [];
@@ -189,9 +188,9 @@ function static_score(grid) {
       var dj = nums[i].j - nums[i+j].j;
       var d = di * di + dj * dj;
       if (d == 1) {
-        sum += 30 * nums[i].num;
+        sum += 60 * smaller_num;
       } else {
-        sum -= 30 * nums[i].num;
+        sum -= 60 * smaller_num;
       }
     }
   }
@@ -205,22 +204,38 @@ function get_score(grid, direction, depth) {
   var zeros = zero_places(ret.grid);
   var minscore = Number.POSITIVE_INFINITY;
   var numbers = [2, 4];
-  for (var i = 0; i < width; i++) {
-    var index = Math.floor(Math.random() * zeros.length);
-    var num = numbers[Math.floor(Math.random() * 2)];
-    var gi = zeros[index].i;
-    var gj = zeros[index].j;
-    ret.grid[gi][gj] = num;
-    var maxscore = Number.NEGATIVE_INFINITY;
-    for (var k = 0; k < 4; k++) {
-      maxscore = Math.max(maxscore, get_score(ret.grid, k, depth - 1));
-    }
-    if (maxscore != Number.NEGATIVE_INFINITY) {
-      minscore = Math.min(minscore, maxscore);
+  var unmovable = 0;
+  for (var i = 0; i < zeros.length; i++) {
+    for (var j = 0; j < 2; j++) {
+      var num = numbers[j];
+      var gi = zeros[i].i;
+      var gj = zeros[i].j;
+      ret.grid[gi][gj] = num;
+      var maxscore = Number.NEGATIVE_INFINITY;
+      for (var k = 0; k < 4; k++) {
+        maxscore = Math.max(maxscore, get_score(ret.grid, k, depth - 1));
+      }
+      if (maxscore != Number.NEGATIVE_INFINITY) {
+        minscore = Math.min(minscore, maxscore);
+      } else {
+        unmovable++;
+      }
     }
     ret.grid[gi][gj] = 0;
   }
-  return minscore + ret.point * 100;
+  var maxn = 0;
+  for (var i = 0; i < 4; i++) {
+    for (var j = 0; j < 4; j++) {
+      maxn = Math.max(maxn, ret.grid[i][j]);
+    }
+  }
+  var offset = 0;
+  if (unmovable == 3) {
+    offset = -500 * maxn;
+  } else if (unmovable == 2) {
+    offset = -50 * maxn;
+  }
+  return minscore + ret.point * 100 + offset;
 }
 
 function calc(grid) {
