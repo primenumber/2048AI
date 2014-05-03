@@ -3,10 +3,11 @@
 #include "score.hpp"
 
 constexpr int sorted_weight  = 100;
-constexpr int corner_weight  = 100;
-constexpr int zero_weight    =  10;
+constexpr int corner_weight  =  50;
+constexpr int zero_weight    =  50;
 constexpr int same_weight    =  20;
-constexpr int movable_weight =  50;
+constexpr int movable_weight =  30;
+constexpr int max_weight     =   5;
 
 int zero_score(const table_t& table) {
   int zero_number = 0;
@@ -26,20 +27,20 @@ int movable_score(const table_t& table) {
 
 int same_score(const table_t& table) {
   int same_number = 0;
-  int di[] = {-1, 0, 1, 0};
-  int dj[] = {0, 1, 0, -1};
+  int di[] = {1, 0};
+  int dj[] = {0, 1};
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
-      for (int k = 0; k < 4; ++k) {
+      for (int k = 0; k < 2; ++k) {
         int ni = i + di[k];
         int nj = j + dj[k];
-        if (ni < 0 || ni >= 4 || nj < 0 || nj >= 4) continue;
+        if (ni >= 4 || nj >= 4) continue;
         if (table[i][j] == table[ni][nj])
           ++same_number;
       }
     }
   }
-  return same_number / 2;
+  return same_number;
 }
 
 int sorted_score(const table_t& table) {
@@ -73,7 +74,8 @@ int sorted_score(const table_t& table) {
 }
 
 int corner_score(const table_t& table) {
-  return std::max(table[0][0] ,std::max(table[0][3] ,std::max(table[3][0] ,table[3][3])));
+  return std::max(table[0][0] ,std::max(table[0][3] ,std::max(table[3][0] ,table[3][3])))
+      - std::max(table[1][1] ,std::max(table[1][2] ,std::max(table[2][1], table[2][2])));
 }
 
 int static_score(const table_t& table) {
@@ -84,6 +86,7 @@ int static_score(const table_t& table) {
   return sorted_score(table) * sorted_weight
       + corner_score(table) * corner_weight
       + same_score(table) * max_number * same_weight
-      + zero_score(table) * max_number * zero_weight
-      + movable_score(table) * max_number * movable_weight;
+      + std::log(zero_score(table)) * max_number * zero_weight
+      + movable_score(table) * max_number * movable_weight
+      + max_number * max_weight;
 }
