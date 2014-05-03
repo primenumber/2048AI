@@ -1,13 +1,19 @@
+# encoding : utf-8
 require 'curses'
 require 'net/http'
 require 'json'
 require 'uri'
+
+HOST = 'http://localhost:8080'
+
+$move_direction_str = ["↑","→","↓","←"]
+
 def get_json(location)
   text = `curl -sL #{location}`
   return JSON.parse(text)
 end
 
-def set_num(i, j, num)
+def set_num(i, j, t_id, num)
   if num > 0 then
     str = sprintf("%6d", num)
   else
@@ -18,16 +24,16 @@ def set_num(i, j, num)
     id += 1
     num /= 2
   end
-  $grid[i][j].attrset(Curses::color_pair(id) | Curses::A_BOLD) if id > 0
-  $grid[i][j].setpos(2,1)
-  $grid[i][j].addstr(str)
-  $grid[i][j].attroff(Curses::A_COLOR | Curses::A_BOLD)
-  $grid[i][j].refresh
+  $grid[t_id][i][j].attrset(Curses::color_pair(id) | Curses::A_BOLD) if id > 0
+  $grid[t_id][i][j].setpos(2,1)
+  $grid[t_id][i][j].addstr(str)
+  $grid[t_id][i][j].attroff(Curses::A_COLOR | Curses::A_BOLD)
+  $grid[t_id][i][j].refresh
 end
 
 class Game
-  def start
-    json_data = get_json('http://ring:2048/hi/start/json')
+  def start(thread_id)
+    json_data = get_json(HOST+'/hi/start/json')
     @session_id = json_data["session_id"]
     loop do
       move = -1
@@ -38,16 +44,16 @@ class Game
         end
       end
       move = (`echo #{str} | ./2048ai`).to_i
-      Curses::setpos(19,0)
-      Curses::addstr("move: " + move.to_s)
-      json_data = get_json("http://ring:2048/hi/state/#{@session_id}/move/#{move}/json")
+      Curses::setpos(19,thread_id*40)
+      Curses::addstr("move: " + $move_direction_str[move])
+      json_data = get_json("#{HOST}/hi/state/#{@session_id}/move/#{move}/json")
       for i in 0...4
         for j in 0...4
-          set_num(i, j, json_data["grid"][i][j])
+          set_num(i, j, thread_id, json_data["grid"][i][j])
         end
       end
-      Curses::setpos(20,0)
-      Curses::addstr("Score: #{json_data["score"]}")
+      Curses::setpos(20,thread_id * 40)
+      Curses::addstr("Score: #{sprintf("%7d",json_data["score"])}")
       Curses::refresh
       break if json_data["over"]
     end
@@ -77,18 +83,27 @@ Curses::init_pair(17 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
 Curses::setpos(0, 0)
 Curses::addstr("great AI - 2048 AI")
 Curses::refresh
-$grid = Array.new(4)
-for i in 0...4
-  $grid[i] = Array.new
+$grid = Array.new(2)
+for i in 0...2
+  $grid[i] = Array.new(4)
   for j in 0...4
-    $grid[i][j] = Curses::stdscr.subwin(4, 8, i * 4 + 2, j * 9 + 1)
-    $grid[i][j].box(?|,?-,?+)
-    $grid[i][j].refresh
+    $grid[i][j] = Array.new(4)
+    for k in 0...4
+      $grid[i][j][k] = Curses::stdscr.subwin(4, 8, j * 4 + 2, i * 40 + k * 9 + 1)
+      $grid[i][j][k].box(?|,?-,?+)
+      $grid[i][j][k].refresh
+    end
   end
 end
 loop do
   break if Curses::getch == ?q
-  game = Game.new
-  game.start
+  threads = Array.new
+  for i in 0..1
+    threads.push(Thread.start(i) {|i|
+      game = Game.new
+      game.start(i)
+    })
+  end
+  threads.each{|th| th.join}
 end
 Curses::close_screen
