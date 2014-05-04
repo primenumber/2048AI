@@ -3,7 +3,7 @@
 #include "score.hpp"
 
 constexpr int sorted_weight  = 100;
-constexpr int corner_weight  =  50;
+constexpr int corner_weight  =  30;
 constexpr int zero_weight    =  50;
 constexpr int same_weight    =  20;
 constexpr int movable_weight =  30;
@@ -89,4 +89,14 @@ int static_score(const table_t& table) {
       + std::log(zero_score(table)) * max_number * zero_weight
       + movable_score(table) * max_number * movable_weight
       + max_number * max_weight;
+}
+
+int static_score_light(const table_t& table) {
+  int max_number = 0;
+  for (int i = 0; i < 4; ++i)
+    for (int j = 0; j < 4; ++j)
+      max_number = std::max(max_number, table[i][j]);
+  return sorted_score(table) * sorted_weight
+      + corner_score(table) * corner_weight
+      + std::log(zero_score(table)) * max_number * zero_weight;
 }

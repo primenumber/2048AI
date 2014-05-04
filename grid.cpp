@@ -69,4 +69,10 @@ std::vector<std::pair<int, int>> zero_list(const table_t& table) {
   return results;
 }
 
-
+int sum_grid(const table_t& table) {
+  int sum = 0;
+  for (int i = 0; i < 4; ++i)
+    for (int j = 0; j < 4; ++j)
+      sum += table[i][j];
+  return sum;
+}
