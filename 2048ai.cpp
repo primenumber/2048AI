@@ -5,7 +5,9 @@
 #include <vector>
 #include "grid.hpp"
 #include "score.hpp"
+#include "search.hpp"
 
+/*
 int calc(const table_t& table, int direction, int depth, int alpha, int beta) {
   table_t moved = move(table, direction);
   if (depth == 0) return static_score(moved);
@@ -33,6 +35,7 @@ int calc(const table_t& table, int direction, int depth, int alpha, int beta) {
   }
   return beta;
 }
+*/
 
 int main() {
   table_t table;
@@ -41,6 +44,8 @@ int main() {
       std::cin >> e;
     }
   }
+  std::cout << search(table) << std::endl;
+  /*
   int max_i = -1;
   int alpha = -1000000000;
   int beta = 1000000000;
@@ -59,6 +64,7 @@ int main() {
     }
   }
   std::cout << max_i << std::endl;
+  */
   return 0;
 }
 
