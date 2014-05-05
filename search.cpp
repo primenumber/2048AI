@@ -61,7 +61,7 @@ int alpha_beta_search(const table_t& table) {
 struct Play {
  public:
   Play(const int direction_) : direction(direction_), score_sum(0), search_num(0) {}
-  void playout(int score) {
+  void playout(int64_t score) {
     score_sum += score;
     ++search_num;
   }
@@ -70,7 +70,7 @@ struct Play {
   int search_num;
 };
 
-std::pair<int, int> playout(const table_t& table, int direction) {
+std::pair<int64_t, int> playout(const table_t& table, int direction) {
   table_t moved = move(table, direction);
   auto zeros = zero_list(moved);
   int z = rand() % zeros.size();
@@ -79,7 +79,7 @@ std::pair<int, int> playout(const table_t& table, int direction) {
   int max_i = -1;
   for (int i = 0; i < 4; ++i) {
     if (movable(moved, i)) {
-      int score = static_score_light(move(moved, i));
+      int score = -static_score_light(move(moved, i));
       if (score > max_score) {
         max_score = score;
         max_i = i;
@@ -137,6 +137,6 @@ int Monte_Carlo_search(const table_t& table) {
 }
 
 int search(const table_t& table) {
-  return Monte_Carlo_search(table);
-  // return alpha_beta_search(table);
+  // return Monte_Carlo_search(table);
+  return alpha_beta_search(table);
 }
