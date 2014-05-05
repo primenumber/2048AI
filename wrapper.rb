@@ -1,15 +1,17 @@
 # encoding : utf-8
 require 'curses'
-require 'net/http'
+require 'open-uri'
 require 'json'
-require 'uri'
 
-HOST = 'http://localhost:8080'
+HOST = 'http://ring:2048'
 
 $move_direction_str = ["↑","→","↓","←"]
 
 def get_json(location)
-  text = `curl -sL #{location}`
+  text = ""
+  OpenURI.open_uri(location) {|sio|
+    text = sio.read
+  }
   return JSON.parse(text)
 end
 
@@ -25,7 +27,7 @@ def set_num(i, j, t_id, num)
     num /= 2
   end
   $grid[t_id][i][j].attrset(Curses::color_pair(id) | Curses::A_BOLD) if id > 0
-  $grid[t_id][i][j].setpos(2,1)
+  $grid[t_id][i][j].setpos(1,1)
   $grid[t_id][i][j].addstr(str)
   $grid[t_id][i][j].attroff(Curses::A_COLOR | Curses::A_BOLD)
   $grid[t_id][i][j].refresh
@@ -61,24 +63,25 @@ class Game
 end
 
 Curses::init_screen
+Curses::start_color
 
-Curses::init_pair(1  ,Curses::COLOR_YELLOW ,Curses::COLOR_GREEN  )
-Curses::init_pair(2  ,Curses::COLOR_RED    ,Curses::COLOR_BLUE   )
-Curses::init_pair(3  ,Curses::COLOR_BLUE   ,Curses::COLOR_WHITE  )
-Curses::init_pair(4  ,Curses::COLOR_CYAN   ,Curses::COLOR_WHITE  )
-Curses::init_pair(5  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(6  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(7  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(8  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(9  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(10 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(11 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(12 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(13 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(14 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(15 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(16 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
-Curses::init_pair(17 ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
+Curses::init_pair(1  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
+Curses::init_pair(2  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
+Curses::init_pair(3  ,Curses::COLOR_BLACK  ,Curses::COLOR_WHITE  )
+Curses::init_pair(4  ,Curses::COLOR_WHITE  ,Curses::COLOR_RED    )
+Curses::init_pair(5  ,Curses::COLOR_WHITE  ,Curses::COLOR_RED    )
+Curses::init_pair(6  ,Curses::COLOR_WHITE  ,Curses::COLOR_RED    )
+Curses::init_pair(7  ,Curses::COLOR_WHITE  ,Curses::COLOR_YELLOW )
+Curses::init_pair(8  ,Curses::COLOR_WHITE  ,Curses::COLOR_YELLOW )
+Curses::init_pair(9  ,Curses::COLOR_WHITE  ,Curses::COLOR_YELLOW )
+Curses::init_pair(10 ,Curses::COLOR_WHITE  ,Curses::COLOR_YELLOW )
+Curses::init_pair(11 ,Curses::COLOR_WHITE  ,Curses::COLOR_YELLOW )
+Curses::init_pair(12 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
+Curses::init_pair(13 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
+Curses::init_pair(14 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
+Curses::init_pair(15 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
+Curses::init_pair(16 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
+Curses::init_pair(17 ,Curses::COLOR_BLACK  ,Curses::COLOR_CYAN   )
 
 Curses::setpos(0, 0)
 Curses::addstr("great AI - 2048 AI")
@@ -89,7 +92,7 @@ for i in 0...2
   for j in 0...4
     $grid[i][j] = Array.new(4)
     for k in 0...4
-      $grid[i][j][k] = Curses::stdscr.subwin(4, 8, j * 4 + 2, i * 40 + k * 9 + 1)
+      $grid[i][j][k] = Curses::stdscr.subwin(3, 8, j * 3 + 2, i * 40 + k * 9 + 1)
       $grid[i][j][k].box(?|,?-,?+)
       $grid[i][j][k].refresh
     end
