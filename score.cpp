@@ -3,9 +3,9 @@
 #include "score.hpp"
 
 constexpr int sorted_weight  = 100;
-constexpr int corner_weight  =  30;
+constexpr int corner_weight  =  50;
 constexpr int zero_weight    =  50;
-constexpr int same_weight    =  20;
+constexpr int same_weight    =  30;
 constexpr int movable_weight =  30;
 constexpr int max_weight     =   5;
 

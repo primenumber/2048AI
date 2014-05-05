@@ -81,6 +81,6 @@ int64_t sq_sum_grid(const table_t& table) {
   int64_t sum = 0;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      sum += table[i][j] * table[i][j];
+      sum += (int64_t)table[i][j] * table[i][j];
   return sum;
 }
