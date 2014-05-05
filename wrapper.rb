@@ -159,7 +159,7 @@ for i in 0...2
   $window[i].refresh
 end
 loop do
-  break if Curses::getch == ?q
+  break if Curses::getstr == "quit"
   threads = Array.new
   for i in 0..1
     threads.push(Thread.start(i) {|i|
