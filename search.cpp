@@ -70,7 +70,7 @@ struct Play {
   int search_num;
 };
 
-int playout(const table_t& table, int direction) {
+std::pair<int, int> playout(const table_t& table, int direction) {
   table_t moved = move(table, direction);
   auto zeros = zero_list(moved);
   int z = rand() % zeros.size();
@@ -87,9 +87,10 @@ int playout(const table_t& table, int direction) {
     }
   }
   if (max_i != -1) {
-    return playout(moved, max_i);
+    auto result = playout(moved, max_i);
+    return std::make_pair(result.first, result.second + 1);
   } else {
-    return sum_grid(moved);
+    return std::make_pair(sum_grid(moved), 1);
   }
 }
 
@@ -99,12 +100,14 @@ int Monte_Carlo_search(const table_t& table) {
     if (movable(table, i))
       movable_list.emplace_back(i);
   if (movable_list.size() == 1) return movable_list.front().direction;
+  int playout_count = 0;
   for (auto& play : movable_list) {
-    int score = playout(table, play.direction);
-    play.playout(score);
+    auto result = playout(table, play.direction);
+    play.playout(result.first);
+    playout_count += result.second;
   }
   int sum = sum_grid(table);
-  for (int i = 0; i < 80; ++i) {
+  for (int i = 0; playout_count < 10000; ++i) {
     double max_ucb1 = 0.0;
     int max_ucb1_play = -1;
     for (int j = 0; j < movable_list.size(); ++j) {
@@ -117,7 +120,9 @@ int Monte_Carlo_search(const table_t& table) {
       }
     }
     Play& selecetd_play = movable_list[max_ucb1_play];
-    selecetd_play.playout(playout(table, selecetd_play.direction));
+    auto result = playout(table, selecetd_play.direction);
+    selecetd_play.playout(result.first);
+    playout_count += result.second;
   }
   double max_average_score = 0.0;
   int max_average_score_direction = -1;
