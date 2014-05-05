@@ -58,11 +58,11 @@ int sorted_score(const table_t& table) {
     for (int j = 1; j < 4; ++j) {
       if (table[i][j] < table[i][j-1])
         sorted[i] = false;
-      if (table[i][j] > table[i][j-1])
+      else if (table[i][j] > table[i][j-1])
         sorted[i+4] = false;
       if (table[j][i] < table[j-1][i])
         sorted[i+8] = false;
-      if (table[j][i] > table[j-1][i])
+      else if (table[j][i] > table[j-1][i])
         sorted[i+12] = false;
     }
   }
