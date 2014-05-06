@@ -3,11 +3,11 @@
 #include "score.hpp"
 
 constexpr int sorted_weight  = 100;
-constexpr int corner_weight  =  50;
-constexpr int zero_weight    =  50;
-constexpr int same_weight    =  30;
+constexpr int corner_weight  =  30;
+constexpr int zero_weight    =  30;
+constexpr int same_weight    =  70;
 constexpr int movable_weight =  30;
-constexpr int max_weight     =   5;
+constexpr int max_weight     =  20;
 
 int zero_score(const table_t& table) {
   int zero_number = 0;
