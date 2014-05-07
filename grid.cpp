@@ -1,5 +1,68 @@
 #include "grid.hpp"
 
+namespace ai2048.grid {
+
+Grid Grid::rotate(int rotation) const {
+  if (rotation == 0) return Grid(*this);
+  Grid result = this->rotate(rotation - 1);
+  switch(rotation) {
+   case 2:
+   case 3:
+    if (rotation == 2) break;
+   case 1:
+    for (int i = 0; i < 2; ++i) {
+      for (int j = 0; j < 2; ++j) {
+        int tmp = result[i][j];
+        result[i][j] = result[j][3-i];
+        result[j][3-i] = result[3-i][3-j];
+        result[3-i][3-j] = result[3-j][i];
+        result[3-j][i] = tmp;
+      }
+    }
+    break;
+  }
+  return result;
+}
+
+void Grid::rotate_this(int rotation) {
+  if (rotation != 0) *this = this->rotate(rotation);
+}
+
+bool Grid::is_movable(Direction direction) const {
+  Grid r_grid = this->rotate(direction);
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 1; j < 4; ++j) {
+      if (r_grid.table[j][i] == 0) continue;
+      if (r_grid.table[j][i] == r_grid.table[j][j-1][i] || r_grid.table[j][j-1][i] == 0)
+        return true;
+    }
+  }
+  return false;
+}
+
+std::vector<Direction> Grid::movable_directions() const {
+  std::vector<Direction> results;
+  for (Direction i = UP, i < NONE; ++i)
+    if (this->is_movable(i))
+      results.push_back(i);
+  return results;
+}
+
+std::vector<std::pair<int, int>> Grid::zero_tiles() const {
+  std::vector<std::pair<int, int>> results;
+  for (int i = 0; i < 4; ++i)
+    for (int j = 0; j < 4; ++j)
+      if (table[i][j] == 0)
+        results.emplace_back(i, j);
+  return results;
+}
+
+Grid Grid::move(Direction) const {
+  ;
+}
+
+} // namespace ai2048.grid
+
 table_t rotate(table_t table, int direction) {
   for (int i = 0; i < direction; ++i) {
     table_t tmp;

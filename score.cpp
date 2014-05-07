@@ -2,10 +2,10 @@
 #include <array>
 #include "score.hpp"
 
-constexpr int sorted_weight  = 100;
-constexpr int corner_weight  =  30;
-constexpr int zero_weight    =  30;
-constexpr int same_weight    =  70;
+constexpr int sorted_weight  =  50;
+constexpr int corner_weight  =  70;
+constexpr int zero_weight    =  70;
+constexpr int same_weight    =  50;
 constexpr int movable_weight =  30;
 constexpr int max_weight     =  20;
 
@@ -26,7 +26,7 @@ int movable_score(const table_t& table) {
 }
 
 int same_score(const table_t& table) {
-  int same_number = 0;
+  int score = 0;
   int di[] = {1, 0};
   int dj[] = {0, 1};
   for (int i = 0; i < 4; ++i) {
@@ -36,11 +36,11 @@ int same_score(const table_t& table) {
         int nj = j + dj[k];
         if (ni >= 4 || nj >= 4) continue;
         if (table[i][j] == table[ni][nj])
-          ++same_number;
+          score += table[i][j];
       }
     }
   }
-  return same_number;
+  return score;
 }
 
 int sorted_score(const table_t& table) {
@@ -85,7 +85,7 @@ int static_score(const table_t& table) {
       max_number = std::max(max_number, table[i][j]);
   return sorted_score(table) * sorted_weight
       + corner_score(table) * corner_weight
-      + same_score(table) * max_number * same_weight
+      + same_score(table) * same_weight
       + std::log(zero_score(table)) * max_number * zero_weight
       + movable_score(table) * max_number * movable_weight
       + max_number * max_weight;
@@ -96,7 +96,7 @@ int static_score_light(const table_t& table) {
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
       max_number = std::max(max_number, table[i][j]);
-  return sorted_score(table) * sorted_weight
+  return same_score(table) * same_weight
       + corner_score(table) * corner_weight
       + std::log(zero_score(table)) * max_number * zero_weight;
 }

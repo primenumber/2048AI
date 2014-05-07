@@ -59,7 +59,20 @@ class Game
           str += ' ' + json_data["grid"][i][j].to_s
         end
       end
-      move = (`echo #{str} | ./2048ai`).to_i
+      IO.popen('./2048ai',"r+") do |io|
+        io.puts str
+        for line in io
+          data = JSON.parse(line)
+          case data["type"]
+          when "move" then
+            move = data["direction"]
+            break
+          when "debug" then
+            @window.setpos(17, 1)
+            @window.addstr("average est. value: " + data["score"].to_s)
+          end
+        end
+      end
       @window.setpos(19, 1)
       @window.addstr("move: " + $move_direction_str[move])
       json_data = get_json("#{HOST}/hi/state/#{@session_id}/move/#{move}/json")
