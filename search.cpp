@@ -1,6 +1,7 @@
 #include "search.hpp"
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <utility>
 #include <vector>
 
@@ -79,7 +80,7 @@ std::pair<int64_t, int> playout(const table_t& table, int direction) {
   int max_i = -1;
   for (int i = 0; i < 4; ++i) {
     if (movable(moved, i)) {
-      int score = -static_score_light(move(moved, i));
+      int score = static_score_light(move(moved, i));
       if (score > max_score) {
         max_score = score;
         max_i = i;
@@ -88,7 +89,7 @@ std::pair<int64_t, int> playout(const table_t& table, int direction) {
   }
   if (max_i != -1) {
     auto result = playout(moved, max_i);
-    return std::make_pair(result.first, result.second + 1);
+    return std::make_pair(result.first + 1, result.second + 1);
   } else {
     return std::make_pair(sq_sum_grid(moved), 1);
   }
@@ -106,7 +107,7 @@ int Monte_Carlo_search(const table_t& table) {
     play.playout(result.first);
     playout_count += result.second;
   }
-  int sum = sum_grid(table);
+  int sum = sq_sum_grid(table);
   for (int i = 0; i < 80 || playout_count < 10000; ++i) {
     double max_ucb1 = 0.0;
     int max_ucb1_play = -1;
@@ -133,10 +134,11 @@ int Monte_Carlo_search(const table_t& table) {
       max_average_score_direction = play.direction;
     }
   }
+  std::cout << "{\"type\":\"debug\",\"score\":"<<max_average_score<<"}" << std::endl;
   return max_average_score_direction;
 }
 
 int search(const table_t& table) {
-  // return Monte_Carlo_search(table);
-  return alpha_beta_search(table);
+  return Monte_Carlo_search(table);
+  // return alpha_beta_search(table);
 }
