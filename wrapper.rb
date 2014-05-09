@@ -2,8 +2,14 @@
 require 'curses'
 require 'open-uri'
 require 'json'
+require 'yaml'
 
-HOST = 'http://ring:2048'
+if File.exist?('host.yml') then
+  config = YAML.load_file('host.yml')
+  HOST = config["host"]
+else
+  HOST = 'http://2048.semantics3.com'
+end
 
 $move_direction_str = ["↑","→","↓","←"]
 
