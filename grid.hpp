@@ -21,6 +21,8 @@ class Grid {
   Grid() = default;
   Grid(const Grid& that) = default;
   Grid(Grid&& that) = default;
+  Grid& operator=(const Grid& rhs) = default;
+  Grid& operator=(Grid&& rhs) = default;
   Grid rotate(int) const;
   void rotate_this(int);
   bool is_movable(Direction) const;
@@ -31,6 +33,15 @@ class Grid {
   int sum_tiles() const;
   int64_t sq_sum_tiles() const;
   table_t table;
+ private:
+  bool is_movable_up() const;
+  bool is_movable_right() const;
+  bool is_movable_down() const;
+  bool is_movable_left() const;
+  Grid move_up() const;
+  Grid move_right() const;
+  Grid move_down() const;
+  Grid move_left() const;
 };
 
 bool operator<(const Grid& lhs, const Grid& rhs);

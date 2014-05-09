@@ -32,15 +32,13 @@ Grid Grid::rotate(int rotation) const {
 }
 
 bool Grid::is_movable(Direction direction) const {
-  Grid r_grid = this->rotate(direction);
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 1; j < 4; ++j) {
-      if (r_grid.table[j][i] == 0) continue;
-      if (r_grid.table[j][i] == r_grid.table[j-1][i] || r_grid.table[j-1][i] == 0)
-        return true;
-    }
+  switch (direction) {
+    case UP: return is_movable_up();
+    case RIGHT: return is_movable_right();
+    case DOWN: return is_movable_down();
+    case LEFT: return is_movable_left();
+    default: return false;
   }
-  return false;
 }
 
 std::vector<Direction> Grid::movable_directions() const {
@@ -61,31 +59,13 @@ std::vector<std::pair<int, int>> Grid::zero_tiles() const {
 }
 
 Grid Grid::move(Direction direction) const {
-  Grid r_grid = this->rotate(direction);
-  bool joined = false;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 1; j < 4; ++j) {
-      int k;
-      for (k = j - 1; k >= 0; --k) {
-        if (r_grid.table[k][i] != 0) {
-          if (r_grid.table[k][i] != r_grid.table[k+1][i] || joined) {
-            joined = false;
-            break;
-          } else {
-            r_grid.table[k][i] *= 2;
-            r_grid.table[k+1][i] = 0;
-            joined = true;
-            break;
-          }
-        } else {
-          r_grid.table[k][i] = r_grid.table[k+1][i];
-          r_grid.table[k+1][i] = 0;
-        }
-      }
-      if (k < 0) joined = false;
-    }
+  switch (direction) {
+    case 0: return this->move_up();
+    case 1: return this->move_right();
+    case 2: return this->move_down();
+    case 3: return this->move_left();
+    default: return *this;
   }
-  return r_grid;
 }
 
 int Grid::sum_tiles() const {
@@ -104,6 +84,164 @@ int64_t Grid::sq_sum_tiles() const {
   return sum;
 }
 
+// private methods
+bool Grid::is_movable_up() const {
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 1; j < 4; ++j) {
+      if (table[j][i] == 0) continue;
+      if (table[j][i] == table[j-1][i] || table[j-1][i] == 0)
+        return true;
+    }
+  }
+  return false;
+}
+
+bool Grid::is_movable_right() const {
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      if (table[i][j] == 0) continue;
+      if (table[i][j] == table[i][j+1] || table[i][j+1] == 0)
+        return true;
+    }
+  }
+  return false;
+}
+
+bool Grid::is_movable_down() const {
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      if (table[j][i] == 0) continue;
+      if (table[j][i] == table[j+1][i] || table[j+1][i] == 0)
+        return true;
+    }
+  }
+  return false;
+}
+
+bool Grid::is_movable_left() const {
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 1; j < 4; ++j) {
+      if (table[i][j] == 0) continue;
+      if (table[i][j] == table[i][j-1] || table[i][j-1] == 0)
+        return true;
+    }
+  }
+  return false;
+}
+
+Grid Grid::move_up() const {
+  Grid c_grid = Grid(*this);
+  bool joined = false;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 1; j < 4; ++j) {
+      int k;
+      for (k = j - 1; k >= 0; --k) {
+        if (c_grid.table[k][i] != 0) {
+          if (c_grid.table[k][i] != c_grid.table[k+1][i] || joined) {
+            joined = false;
+            break;
+          } else {
+            c_grid.table[k][i] *= 2;
+            c_grid.table[k+1][i] = 0;
+            joined = true;
+            break;
+          }
+        } else {
+          c_grid.table[k][i] = c_grid.table[k+1][i];
+          c_grid.table[k+1][i] = 0;
+        }
+      }
+      if (k < 0) joined = false;
+    }
+  }
+  return c_grid;
+}
+
+Grid Grid::move_right() const {
+  Grid c_grid = Grid(*this);
+  bool joined = false;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 2; j >= 0; --j) {
+      int k;
+      for (k = j + 1; k < 4; ++k) {
+        if (c_grid.table[i][k] != 0) {
+          if (c_grid.table[i][k] != c_grid.table[i][k-1] || joined) {
+            joined = false;
+            break;
+          } else {
+            c_grid.table[i][k] *= 2;
+            c_grid.table[i][k-1] = 0;
+            joined = true;
+            break;
+          }
+        } else {
+          c_grid.table[i][k] = c_grid.table[i][k-1];
+          c_grid.table[i][k-1] = 0;
+        }
+      }
+      if (k >= 4) joined = false;
+    }
+  }
+  return c_grid;
+}
+
+Grid Grid::move_down() const {
+  Grid c_grid = Grid(*this);
+  bool joined = false;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 2; j >= 0; --j) {
+      int k;
+      for (k = j + 1; k < 4; ++k) {
+        if (c_grid.table[k][i] != 0) {
+          if (c_grid.table[k][i] != c_grid.table[k-1][i] || joined) {
+            joined = false;
+            break;
+          } else {
+            c_grid.table[k][i] *= 2;
+            c_grid.table[k-1][i] = 0;
+            joined = true;
+            break;
+          }
+        } else {
+          c_grid.table[k][i] = c_grid.table[k-1][i];
+          c_grid.table[k-1][i] = 0;
+        }
+      }
+      if (k >= 4) joined = false;
+    }
+  }
+  return c_grid;
+}
+
+Grid Grid::move_left() const {
+  Grid c_grid = Grid(*this);
+  bool joined = false;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 1; j < 4; ++j) {
+      int k;
+      for (k = j - 1; k >= 0; --k) {
+        if (c_grid.table[i][k] != 0) {
+          if (c_grid.table[i][k] != c_grid.table[i][k+1] || joined) {
+            joined = false;
+            break;
+          } else {
+            c_grid.table[i][k] *= 2;
+            c_grid.table[i][k+1] = 0;
+            joined = true;
+            break;
+          }
+        } else {
+          c_grid.table[i][k] = c_grid.table[i][k+1];
+          c_grid.table[i][k+1] = 0;
+        }
+      }
+      if (k < 0) joined = false;
+    }
+  }
+  return c_grid;
+}
+
+// grobal functions
 bool operator<(const Grid& lhs, const Grid& rhs) {
   return lhs.table < rhs.table;
 }
