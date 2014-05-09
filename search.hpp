@@ -1,9 +1,16 @@
+#include <map>
 #include "grid.hpp"
+#include "random.hpp"
 #include "score.hpp"
 
-int search(const table_t& table);
+namespace ai2048 {
+namespace search {
 
-int alpha_beta_player(const table_t& table, int alpha, int beta, int depth);
-int alpha_beta_host(table_t&& table, int alpha, int beta, int depth);
-int alpha_beta_search(const table_t& table);
-int Monte_Carlo_search(const table_t& table);
+int search(const grid::Grid& grid);
+
+int alpha_beta_host(grid::Grid grid, std::map<grid::Grid, int>& scores, int alpha, int beta, int depth);
+int alpha_beta_search(const grid::Grid& grid);
+int Monte_Carlo_search(const grid::Grid& grid);
+
+} // namespace search
+} // namespace ai2048

@@ -1,4 +1,10 @@
 #include "grid.hpp"
 
-int static_score(const table_t& table);
-int static_score_light(const table_t& table);
+namespace ai2048 {
+namespace score {
+
+int static_score(const grid::Grid&);
+int static_score_light(const grid::Grid&);
+
+} // namespace score
+} // namespace ai2048
