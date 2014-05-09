@@ -2,31 +2,33 @@
 #include <array>
 #include "score.hpp"
 
-constexpr int sorted_weight  =  50;
-constexpr int corner_weight  =  70;
-constexpr int zero_weight    =  70;
-constexpr int same_weight    =  50;
-constexpr int movable_weight =  30;
-constexpr int max_weight     =  20;
+namespace ai2048 {
+namespace score {
+constexpr int sorted_weight    =  80;
+constexpr int corner_weight    = 100;
+constexpr int zero_weight      =  10;
+constexpr int same_weight      =  10;
+constexpr int movable_weight   =  10;
+constexpr int max_weight       =  10;
+constexpr int sq_sum_weight    = 100;
+constexpr int divided_weight   =   0;
+constexpr int max_space_weight =  10;
 
-int zero_score(const table_t& table) {
+int zero_score(const grid::Grid& grid) {
   int zero_number = 0;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      if (table[i][j] == 0)
+      if (grid.table[i][j] == 0)
         ++zero_number;
-  return zero_number;
+  return zero_number + 1;
 }
 
-int movable_score(const table_t& table) {
-  int movable_number = 0;
-  for (int i = 0; i < 4; ++i)
-    if (movable(table, i)) ++movable_number;
-  return (movable_number <= 1) ? -1 : 0;
+int movable_score(const grid::Grid& grid) {
+  return grid.movable_directions().size();
 }
 
-int same_score(const table_t& table) {
-  int score = 0;
+int same_score(const grid::Grid& grid) {
+  int same_number = 0;
   int di[] = {1, 0};
   int dj[] = {0, 1};
   for (int i = 0; i < 4; ++i) {
@@ -35,68 +37,129 @@ int same_score(const table_t& table) {
         int ni = i + di[k];
         int nj = j + dj[k];
         if (ni >= 4 || nj >= 4) continue;
-        if (table[i][j] == table[ni][nj])
-          score += table[i][j];
+        if (grid.table[i][j] == grid.table[ni][nj] && grid.table[i][j] != 0)
+          ++same_number;
       }
     }
   }
-  return score;
+  return same_number;
 }
 
-int sorted_score(const table_t& table) {
+int divided_score(const grid::Grid& grid) {
+  int sum = grid.sum_tiles();
+  int max_patial_sum = 0;
+  for (int i = 0; i < 2; ++i) {
+    int partial_sum = 0;
+    for (int j = 0; j < 4; ++j)
+      partial_sum += grid.table[i*3][j];
+    max_patial_sum = std::max(max_patial_sum, partial_sum);
+    partial_sum = 0;
+    for (int j = 0; j < 4; ++j)
+      partial_sum += grid.table[j][i*3];
+    max_patial_sum = std::max(max_patial_sum, partial_sum);
+  }
+  if (max_patial_sum == sum) return max_patial_sum;
+  return max_patial_sum / (sum - max_patial_sum);
+}
+
+std::array<bool, 16> sorted_info(const grid::Grid& grid) {
   std::array<bool, 16> sorted;
-  std::array<int, 16> sorted_sum;
   std::fill(std::begin(sorted), std::end(sorted), true);
-  std::fill(std::begin(sorted_sum), std::end(sorted_sum), 0);
   for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      sorted_sum[i] += table[i][j];
-      sorted_sum[i+4] += table[i][j];
-      sorted_sum[i+8] += table[j][i];
-      sorted_sum[i+12] += table[j][i];
-    }
     for (int j = 1; j < 4; ++j) {
-      if (table[i][j] < table[i][j-1])
+      if (grid.table[i][j] < grid.table[i][j-1])
         sorted[i] = false;
-      else if (table[i][j] > table[i][j-1])
+      else if (grid.table[i][j] > grid.table[i][j-1])
         sorted[i+4] = false;
-      if (table[j][i] < table[j-1][i])
+      if (grid.table[j][i] < grid.table[j-1][i])
         sorted[i+8] = false;
-      else if (table[j][i] > table[j-1][i])
+      else if (grid.table[j][i] > grid.table[j-1][i])
         sorted[i+12] = false;
     }
   }
+  return sorted;
+}
+
+int sorted_score(const grid::Grid& grid) {
+  std::array<bool, 16> sorted = sorted_info(grid);
+  std::array<int, 16> sorted_sum;
+  std::fill(std::begin(sorted_sum), std::end(sorted_sum), 0);
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      sorted_sum[i] += grid.table[i][j];
+      sorted_sum[i+4] += grid.table[i][j];
+      sorted_sum[i+8] += grid.table[j][i];
+      sorted_sum[i+12] += grid.table[j][i];
+    }
+  }
   int score = 0;
-  for (int i = 0; i < 16; ++i)
-    if (sorted[i])
-      score += sorted_sum[i];
-  return score;
+  for (int i = 0; i < 4; ++i) {
+    if (sorted[i*4]) {
+      score += sorted_sum[i*4];
+      if (sorted[i*4+1]) {
+        score += sorted_sum[i*4+1];
+      }
+    }
+    if (sorted[i*4+3]) {
+      score += sorted_sum[i*4+3];
+      if (sorted[i*4+2]) {
+        score += sorted_sum[i*4+2];
+      }
+    }
+  }
+  // return score;
+  return std::count(std::begin(sorted), std::end(sorted), true);
 }
 
-int corner_score(const table_t& table) {
-  return std::max(table[0][0] ,std::max(table[0][3] ,std::max(table[3][0] ,table[3][3])))
-      - std::max(table[1][1] ,std::max(table[1][2] ,std::max(table[2][1], table[2][2])));
+int max_space_score(const grid::Grid& grid) {
+  int max_tile = 0;
+  int max_i = 0;
+  int max_j = 0;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      if (grid.table[i][j] > max_tile) {
+        max_tile = grid.table[i][j];
+        max_i = i;
+        max_j = j;
+      }
+    }
+  }
+  if ((max_i == 0 || max_i == 3) && (max_j == 0 || max_j == 3)) return 0;
+  return -1;
 }
 
-int static_score(const table_t& table) {
+int corner_score(const grid::Grid& grid) {
+  return grid.table[0][0] + grid.table[0][3] + grid.table[3][0] +grid.table[3][3]
+      - grid.table[1][1] - grid.table[1][2] - grid.table[2][1] - grid.table[2][2];
+}
+
+int static_score(const grid::Grid& grid) {
   int max_number = 0;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      max_number = std::max(max_number, table[i][j]);
-  return sorted_score(table) * sorted_weight
-      + corner_score(table) * corner_weight
-      + same_score(table) * same_weight
-      + std::log(zero_score(table)) * max_number * zero_weight
-      + movable_score(table) * max_number * movable_weight
-      + max_number * max_weight;
+      max_number = std::max(max_number, grid.table[i][j]);
+  int sum = grid.sum_tiles();
+  return sorted_score(grid) * sum * sorted_weight
+      + corner_score(grid) * corner_weight
+      + same_score(grid) * sum * same_weight
+      + std::log(zero_score(grid)) * sum* zero_weight
+      - movable_score(grid) * sum * movable_weight
+      + max_number * max_weight
+      + divided_score(grid) * divided_weight
+      + std::sqrt(grid.sq_sum_tiles()) * sq_sum_weight
+      + max_space_score(grid) * sum * max_space_weight;
 }
 
-int static_score_light(const table_t& table) {
+int static_score_light(const grid::Grid& grid) {
   int max_number = 0;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      max_number = std::max(max_number, table[i][j]);
-  return same_score(table) * same_weight
-      + corner_score(table) * corner_weight
-      + std::log(zero_score(table)) * max_number * zero_weight;
+      max_number = std::max(max_number, grid.table[i][j]);
+  return sorted_score(grid) * max_number * sorted_weight
+      + corner_score(grid) * corner_weight
+      + std::log(zero_score(grid)) * max_number * zero_weight
+      + std::sqrt(grid.sq_sum_tiles()) * sq_sum_weight;
 }
+
+} // namespace score
+} // namespace ai2048

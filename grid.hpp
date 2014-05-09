@@ -1,37 +1,40 @@
+#pragma once
 #include <array>
 #include <utility>
 #include <vector>
 
-namespace ai2048.grid {
+namespace ai2048 {
+namespace grid {
 
-enum Direction : int {
-  UP = 0,
-  RIGHT,
-  DOWN,
-  LEFT,
-  NONE
-};
+using Direction = int;
+
+constexpr Direction UP = 0; 
+constexpr Direction RIGHT = 1;
+constexpr Direction DOWN = 2;
+constexpr Direction LEFT = 3;
+
+constexpr std::array<Direction, 4> directions = {UP, RIGHT, DOWN, LEFT};
 
 class Grid {
  public:
   using table_t = std::array<std::array<int, 4>, 4>;
+  Grid() = default;
   Grid(const Grid& that) = default;
   Grid(Grid&& that) = default;
-  Grid rotate(Direction) const;
-  void rotate_this(Direction);
+  Grid rotate(int) const;
+  void rotate_this(int);
   bool is_movable(Direction) const;
-  std::vector<int> movable_directions() const;
+  std::vector<Direction> movable_directions() const;
   std::vector<std::pair<int, int>> zero_tiles() const;
   Grid move(Direction) const;
-  int move(Direction);
+  int move_this(Direction);
+  int sum_tiles() const;
+  int64_t sq_sum_tiles() const;
   table_t table;
 };
 
-} // namespace ai2048.grid
+bool operator<(const Grid& lhs, const Grid& rhs);
 
-table_t rotate(table_t table, int direction);
-bool movable(const table_t& table, int direction);
-table_t move(const table_t& table, int direction);
-std::vector<std::pair<int, int>> zero_list(const table_t& table);
-int sum_grid(const table_t& table);
-int64_t sq_sum_grid(const table_t& table);
+
+} // namespace grid
+} // namespace ai2048
