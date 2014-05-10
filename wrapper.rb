@@ -99,14 +99,15 @@ class Game
             end
           end
           io.puts str
+          cnt += 1
         when "debug" then
           @window.setpos(17, 1)
           @window.addstr("average est. value: " + data["score"].to_s)
         end
-        cnt += 1
       end
       @window.setpos(20, 1)
       @window.addstr("Game Over!!!")
+      @window.refresh
     end
   end
 end
