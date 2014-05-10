@@ -71,6 +71,8 @@ class Game
     init_grid
     json_data = get_json(HOST+'/hi/start/json')
     @session_id = json_data["session_id"]
+    @window.setpos(20, 1)
+    @window.addstr("Game Start!!")
     str = ""
     for i in 0...4
       for j in 0...4
@@ -107,6 +109,7 @@ class Game
       end
       @window.setpos(20, 1)
       @window.addstr("Game Over!!!")
+      @window.refresh
     end
   end
 end
