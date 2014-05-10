@@ -50,7 +50,7 @@ int Monte_Carlo_search(const grid::Grid& grid) {
     playout_count += result.second;
   }
   int sum = grid.sum_tiles();
-  for (int i = 0; i < 1000 || playout_count < 40000; ++i) {
+  for (int i = 0; i < 700 || playout_count < 30000; ++i) {
     double max_ucb1 = 0.0;
     int max_ucb1_play = -1;
     for (int j = 0; j < movable_list.size(); ++j) {
