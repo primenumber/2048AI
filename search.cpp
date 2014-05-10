@@ -26,7 +26,7 @@ std::pair<int64_t, int> playout(const grid::Grid& grid, int direction) {
   grid::Grid moved = grid.move(direction);
   auto zeros = moved.zero_tiles();
   int z = mt() % zeros.size();
-  moved.table[zeros[z].first][zeros[z].second] = ((mt() % 2) >= 1) ? 2 : 4;
+  moved.table[zeros[z].first][zeros[z].second] = ((mt() % 10) >= 1) ? 2 : 4;
   auto movable = moved.movable_directions();
   if (!movable.empty()) {
     int dir = movable[mt() % movable.size()];
