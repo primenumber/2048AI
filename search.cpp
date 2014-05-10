@@ -121,24 +121,24 @@ struct Play {
   int search_num;
 };
 
-std::pair<int64_t, int> playout(const grid::Grid& grid, int direction) {
+std::pair<int64_t, int> playout(const grid::Grid& grid, int direction, int depth) {
+  if (depth == 0) return std::make_pair(grid.sum_tiles(), 0);
   grid::Grid moved = grid.move(direction);
   auto zeros = moved.zero_tiles();
   int z = mt() % zeros.size();
   moved.table[zeros[z].first][zeros[z].second] = ((mt() % 2) >= 1) ? 2 : 4;
   auto movable = moved.movable_directions();
-  int max_score = 0.0;
-  //int max_i = -1;
-  //for (int dir : movable) {
-  //  int score = score::static_score_light(moved.move(dir));
-  //  if (score > max_score) {
-  //    max_score = score;
-  //    max_i = dir;
-  //  }
-  //}
+  int max_score = -1000000000;
+  int max_i = -1;
+  for (int dir : movable) {
+    int score = score::static_score_light(moved.move(dir));
+    if (score > max_score) {
+      max_score = score;
+      max_i = dir;
+    }
+  }
   if (!movable.empty()) {
-    int dir = movable[mt() % movable.size()];
-    auto result = playout(moved, dir);
+    auto result = playout(moved, max_i, depth - 1);
     return std::make_pair(result.first + 1, result.second + 1);
   } else {
     return std::make_pair(moved.sum_tiles(), 1);
@@ -153,12 +153,12 @@ int Monte_Carlo_search(const grid::Grid& grid) {
   if (movable_list.size() == 1) return movable_list.front().direction;
   int playout_count = 0;
   for (auto& play : movable_list) {
-    auto result = playout(grid, play.direction);
+    auto result = playout(grid, play.direction, 100);
     play.playout(result.first);
     playout_count += result.second;
   }
   int sum = grid.sum_tiles();
-  for (int i = 0; i < 300 || playout_count < 25000; ++i) {
+  for (int i = 0; i < 100 || playout_count < 5000; ++i) {
     double max_ucb1 = 0.0;
     int max_ucb1_play = -1;
     for (int j = 0; j < movable_list.size(); ++j) {
@@ -171,7 +171,7 @@ int Monte_Carlo_search(const grid::Grid& grid) {
       }
     }
     Play& selecetd_play = movable_list[max_ucb1_play];
-    auto result = playout(grid, selecetd_play.direction);
+    auto result = playout(grid, selecetd_play.direction, 100);
     selecetd_play.playout(result.first);
     playout_count += result.second;
   }
