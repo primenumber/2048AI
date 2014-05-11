@@ -14,7 +14,12 @@ int GameDAG::alpha_beta_search(
       return score::static_score(game.grid);
   }
   auto nexts = game.getAllNextStates();
-  if (nexts.empty()) return alpha;
+  if (nexts.empty()) {
+    if (game.state == game::State::Player)
+      return -score::static_score(game.grid);
+    else
+      return score::static_score(game.grid);
+  }
   int count = 0;
   for (const auto& next_state : nexts) {
     ++count;

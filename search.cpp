@@ -84,7 +84,7 @@ int alpha_beta_search(const grid::Grid& grid) {
     int score_sum = 0;
     for (grid::Direction dir : movable) {
       grid::Grid moved = grid.move(dir);
-      alpha_beta_host(std::move(moved), scores, now_score - 1, now_score, kDepth - 1);
+      alpha_beta_host(std::move(moved), scores, now_score, now_score + 1, kDepth - 1);
       int score = alpha_beta_host(std::move(moved), scores, alpha, beta, kDepth - 1);
       if (score > alpha || optimal == -1) {
         alpha = score;
