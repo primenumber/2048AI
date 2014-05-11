@@ -13,7 +13,11 @@ constexpr Direction RIGHT = 1;
 constexpr Direction DOWN = 2;
 constexpr Direction LEFT = 3;
 
-constexpr std::array<Direction, 4> directions = {UP, RIGHT, DOWN, LEFT};
+constexpr std::array<Direction, 4> directions = {{UP, RIGHT, DOWN, LEFT}};
+
+constexpr std::array<int, 18> value_table = {{
+  0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072
+}};
 
 class Grid {
  public:

@@ -7,10 +7,11 @@ namespace ai2048 {
 namespace search {
 
 struct Value {
-  Value(int v, int a, int b) : value(v), alpha(a), beta(b) {};
-  int value;
-  int alpha;
-  int beta;
+  Value(int vmin, int vmax) : value_min(vmin), value_max(vmax) {};
+  constexpr static int kValueMin = -1000000000;
+  constexpr static int kValueMax = 1000000000;
+  int value_min;
+  int value_max;
 };
 
 int search(const grid::Grid& grid);

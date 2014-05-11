@@ -17,42 +17,35 @@ int alpha_beta_player(const grid::Grid& grid,
   for (int j = 0; j < 4; ++j) {
     if (!grid.is_movable(j)) continue;
     grid::Grid next_grid = grid.move(j);
-    int score;
     auto score_itr = scores.find(next_grid);
     if (score_itr == end(scores)) {
-      score = alpha_beta_host(next_grid, scores, alpha, beta, depth - 1);
-      scores.insert(std::make_pair(next_grid, Value(score, alpha, beta)));
-    } else {
-      if (score_itr->second.beta < alpha
-          && score_itr->second.value == score_itr->second.beta) {
-        score = alpha_beta_host(next_grid, scores, alpha, beta, depth - 1);
-        score_itr->second.value = score;
-        if (score > alpha) {
-          score_itr->second.beta = beta;
-        } else {
-          score_itr->second.alpha = score_itr->second.beta;
-          score_itr->second.beta = alpha;
-        }
-      } else if (score_itr->second.alpha > beta
-          && score_itr->second.value == score_itr->second.alpha) {
-        score = alpha_beta_host(next_grid, scores, alpha, beta, depth - 1);
-        score_itr->second.value = score;
-        if (score < beta) {
-          score_itr->second.alpha = alpha;
-        } else {
-          score_itr->second.beta = score_itr->second.alpha;
-          score_itr->second.alpha = beta;
-        }
-      } else {
-        score = std::max(alpha, std::min(beta, score_itr->second.value));
-      }
-    }
-    if (score > alpha) {
-      alpha = score;
-      if (alpha >= beta) {
+      const int score = alpha_beta_host(next_grid, scores, alpha, beta, depth - 1);
+      if (beta == score) {
+        scores.insert(std::make_pair(next_grid, Value(beta, Value::kValueMax)));
         return beta;
+      } else if (score == alpha) {
+        scores.insert(std::make_pair(next_grid, Value(Value::kValueMin, alpha)));
+      } else {
+        scores.insert(std::make_pair(next_grid, Value(score, score)));
+        alpha = score;
+      } 
+    } else {
+      Value& svalue = score_itr->second;
+      if (svalue.value_max <= alpha) continue;
+      if (svalue.value_min >= beta) return beta;
+      alpha = std::max(alpha, svalue.value_min);
+      const int score = alpha_beta_host(next_grid, scores,
+          alpha, std::min(beta, svalue.value_max), depth - 1);
+      if (beta == score) {
+        svalue.value_min = beta;
+        return beta;
+      } else if (score == alpha) {
+        svalue.value_max = alpha;
+      } else {
+        alpha = svalue.value_min = svalue.value_max = score;
       }
     }
+    if (alpha >= beta) return beta;
   }
   return alpha;
 }
@@ -82,21 +75,22 @@ int alpha_beta_host(grid::Grid grid,
 int alpha_beta_search(const grid::Grid& grid) {
   int optimal = -1;
   int now_score = score::static_score(grid);
-  for (int kDepth = 4; kDepth < 12; ++kDepth) {
+  auto movable = grid.movable_directions();
+  for (int kDepth = 3; kDepth < 40; ++kDepth) {
     std::map<grid::Grid, Value> scores;
     auto start = std::chrono::system_clock::now();
     int alpha = -1000000000;
     int beta = 1000000000;
-    for (int i = 0; i < 4; ++i) {
-      if (!grid.is_movable(i)) continue;
-      grid::Grid moved = grid.move(i);
+    int score_sum = 0;
+    for (grid::Direction dir : movable) {
+      grid::Grid moved = grid.move(dir);
       alpha_beta_host(std::move(moved), scores, now_score - 1, now_score, kDepth - 1);
       int score = alpha_beta_host(std::move(moved), scores, alpha, beta, kDepth - 1);
-      scores.insert(std::make_pair(moved, Value(score, alpha, beta)));
       if (score > alpha || optimal == -1) {
         alpha = score;
-        optimal = i;
+        optimal = dir;
       }
+      score_sum += score;
     }
     auto end = std::chrono::system_clock::now();
     auto elapsed = end - start;
@@ -104,6 +98,7 @@ int alpha_beta_search(const grid::Grid& grid) {
       std::cout << "{\"type\":\"debug\",\"score\":" << kDepth << "}" << std::endl;
       break;
     }
+    now_score = score_sum / movable.size();
   }
   assert(optimal != -1);
   return optimal;
@@ -189,8 +184,8 @@ int Monte_Carlo_search(const grid::Grid& grid) {
 }
 
 int search(const grid::Grid& grid) {
-  return Monte_Carlo_search(grid);
-  // return alpha_beta_search(grid);
+  // return Monte_Carlo_search(grid);
+  return alpha_beta_search(grid);
 }
 
 } // namespace search

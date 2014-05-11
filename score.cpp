@@ -5,14 +5,14 @@
 namespace ai2048 {
 namespace score {
 constexpr int sorted_weight    =  80;
-constexpr int corner_weight    = 100;
-constexpr int zero_weight      =  10;
-constexpr int same_weight      =  10;
-constexpr int movable_weight   =  10;
-constexpr int max_weight       =  10;
+constexpr int corner_weight    =   0;
+constexpr int zero_weight      =   0;
+constexpr int same_weight      =   3;
+constexpr int movable_weight   =   0;
+constexpr int max_weight       =   0;
 constexpr int sq_sum_weight    = 100;
-constexpr int divided_weight   =   0;
-constexpr int max_space_weight =  10;
+constexpr int divided_weight   = 100;
+constexpr int max_space_weight =   0;
 
 int zero_score(const grid::Grid& grid) {
   int zero_number = 0;
@@ -28,7 +28,7 @@ int movable_score(const grid::Grid& grid) {
 }
 
 int same_score(const grid::Grid& grid) {
-  int same_number = 0;
+  int score = 0;
   int di[] = {1, 0};
   int dj[] = {0, 1};
   for (int i = 0; i < 4; ++i) {
@@ -38,11 +38,15 @@ int same_score(const grid::Grid& grid) {
         int nj = j + dj[k];
         if (ni >= 4 || nj >= 4) continue;
         if (grid.table[i][j] == grid.table[ni][nj] && grid.table[i][j] != 0)
-          ++same_number;
+          score += std::lower_bound(
+              std::begin(grid::value_table),
+              std::end(grid::value_table),
+              grid.table[i][j])
+              - std::begin(grid::value_table);
       }
     }
   }
-  return same_number;
+  return score;
 }
 
 int divided_score(const grid::Grid& grid) {
@@ -146,7 +150,7 @@ int static_score(const grid::Grid& grid) {
       - movable_score(grid) * sum * movable_weight
       + max_number * max_weight
       + divided_score(grid) * divided_weight
-      + std::sqrt(grid.sq_sum_tiles()) * sq_sum_weight
+      + grid.sq_sum_tiles() * sq_sum_weight
       + max_space_score(grid) * sum * max_space_weight;
 }
 
