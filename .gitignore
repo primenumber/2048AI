@@ -1,3 +1,4 @@
 *.swp
+*.o
 2048ai
 host.yml
