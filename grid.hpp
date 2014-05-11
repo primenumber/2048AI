@@ -48,7 +48,8 @@ class Grid {
   Grid move_left() const;
 };
 
-bool operator<(const Grid& lhs, const Grid& rhs);
+bool operator<(const Grid&, const Grid&);
+bool operator==(const Grid&, const Grid&);
 
 
 } // namespace grid

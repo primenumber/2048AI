@@ -3,6 +3,7 @@
 namespace ai2048 {
 namespace grid {
 
+// public functions
 Grid Grid::rotate(int rotation) const {
   if (rotation == 0) return *this;
   Grid result = *this;
@@ -244,6 +245,10 @@ Grid Grid::move_left() const {
 // grobal functions
 bool operator<(const Grid& lhs, const Grid& rhs) {
   return lhs.table < rhs.table;
+}
+
+bool operator==(const Grid& lhs, const Grid& rhs) {
+  return lhs.table == rhs.table;
 }
 
 } // namespace grid
