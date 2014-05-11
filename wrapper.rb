@@ -68,6 +68,9 @@ class Game
   end
   def start(window)
     @window = window
+    @window.setpos(20, 1)
+    @window.addstr("Game Start!!")
+    @window.refresh
     init_grid
     json_data = get_json(HOST+'/hi/start/json')
     @session_id = json_data["session_id"]
@@ -83,7 +86,7 @@ class Game
       io.puts str
       for line in io
         @window.setpos(16, 1)
-        @window.addstr(cnt.to_s)
+        @window.addstr(sprintf("%6d",cnt))
         @window.refresh
         data = JSON.parse(line)
         case data["type"]
@@ -102,7 +105,7 @@ class Game
           cnt += 1
         when "debug" then
           @window.setpos(17, 1)
-          @window.addstr("average est. value: " + data["score"].to_s)
+          @window.addstr(sprintf("depth: %6d", data["score"]))
         end
       end
       @window.setpos(20, 1)
