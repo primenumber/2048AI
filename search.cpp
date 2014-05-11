@@ -31,7 +31,7 @@ std::pair<int64_t, int> playout(const grid::Grid& grid, int direction) {
   if (!movable.empty()) {
     int dir = movable[mt() % movable.size()];
     auto result = playout(moved, dir);
-    return std::make_pair(result.first + 1, result.second + 1);
+    return std::make_pair(result.first + 10, result.second + 1);
   } else {
     return std::make_pair(moved.sum_tiles(), 1);
   }
@@ -50,7 +50,7 @@ int Monte_Carlo_search(const grid::Grid& grid) {
     playout_count += result.second;
   }
   int sum = grid.sum_tiles();
-  for (int i = 0; i < 700 || playout_count < 30000; ++i) {
+  for (int i = 0; i < 2000 || playout_count < 100000; ++i) {
     double max_ucb1 = 0.0;
     int max_ucb1_play = -1;
     for (int j = 0; j < movable_list.size(); ++j) {
