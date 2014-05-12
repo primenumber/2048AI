@@ -184,13 +184,14 @@ Curses::init_pair(15 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
 Curses::init_pair(16 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
 Curses::init_pair(17 ,Curses::COLOR_BLACK  ,Curses::COLOR_CYAN   )
 
+WINDOW_NUM = 1
 $root_window = Window_Wrapper.new
 $root_window.setpos(0, 0)
 $root_window.addstr("great AI - 2048 AI")
 $root_window.refresh
-$window = Array.new(3)
-$grids = Array.new(3)
-for i in 0...3
+$window = Array.new(WINDOW_NUM)
+$grids = Array.new(WINDOW_NUM)
+for i in 0...WINDOW_NUM
   $window[i] = $root_window.subwin(22, 49, 1, 50 * i)
   $window[i].box(?|,?-,?+)
   $grids[i] = init_window($window[i])
@@ -199,7 +200,7 @@ end
 loop do
   break if Curses::getstr == "quit"
   threads = Array.new
-  for i in 0..2
+  for i in 0...WINDOW_NUM
     threads.push(Thread.start(i) {|i|
       game = Game.new
       game.start($window[i])
