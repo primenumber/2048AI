@@ -9,6 +9,23 @@ extern std::mt19937 mt;
 namespace ai2048 {
 namespace search {
 
+int divided_score(const grid::Grid& grid) {
+  int sum = grid.sum_tiles();
+  int max_patial_sum = 0;
+  for (int i = 0; i < 2; ++i) {
+    int partial_sum = 0;
+    for (int j = 0; j < 4; ++j)
+      partial_sum += grid.table[i*3][j];
+    max_patial_sum = std::max(max_patial_sum, partial_sum);
+    partial_sum = 0;
+    for (int j = 0; j < 4; ++j)
+      partial_sum += grid.table[j][i*3];
+    max_patial_sum = std::max(max_patial_sum, partial_sum);
+  }
+  if (max_patial_sum == sum) return max_patial_sum;
+  return max_patial_sum / (sum - max_patial_sum);
+}
+
 struct Play {
  public:
   Play(const int direction_)
@@ -31,9 +48,9 @@ std::pair<int64_t, int> playout(const grid::Grid& grid, int direction) {
   if (!movable.empty()) {
     int dir = movable[mt() % movable.size()];
     auto result = playout(moved, dir);
-    return std::make_pair(result.first + 10, result.second + 1);
+    return std::make_pair(result.first + 1, result.second + 1);
   } else {
-    return std::make_pair(moved.sum_tiles(), 1);
+    return std::make_pair(0, 1);
   }
 }
 
@@ -49,7 +66,7 @@ int Monte_Carlo_search(const grid::Grid& grid) {
     play.playout(result.first);
     playout_count += result.second;
   }
-  int sum = grid.sum_tiles();
+  int sum = 10;
   for (int i = 0; i < 2000 || playout_count < 100000; ++i) {
     double max_ucb1 = 0.0;
     int max_ucb1_play = -1;
@@ -71,7 +88,7 @@ int Monte_Carlo_search(const grid::Grid& grid) {
   double max_average_score = 0.0;
   int max_average_score_direction = -1;
   for (Play& play : movable_list) {
-    double average = (double)play.score_sum / play.search_num;
+    double average = (double)play.score_sum / play.search_num + divided_score(grid.move(play.direction));
     if (average > max_average_score) {
       max_average_score = average;
       max_average_score_direction = play.direction;
