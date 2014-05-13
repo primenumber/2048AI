@@ -47,13 +47,13 @@ class Game
       num /= 2
     end
     @grid[i][j].attrset(Curses::color_pair(id) | Curses::A_BOLD) if id > 0
-    @grid[i][j].setpos(1,1)
+    @grid[i][j].setpos(0,0)
     @grid[i][j].addstr(str)
     @grid[i][j].attroff(Curses::A_COLOR | Curses::A_BOLD)
     @grid[i][j].refresh
   end
   def move(move_direction)
-    @window.setpos(18, 1)
+    @window.setpos(9, 1)
     @window.addstr("move: " + $move_direction_str[move_direction])
     json_data = get_json("#{HOST}/hi/state/#{@session_id}/move/#{move_direction}/json")
     for i in 0...4
@@ -61,7 +61,7 @@ class Game
         set_num(i, j, json_data["grid"][i][j])
       end
     end
-    @window.setpos(19, 1)
+    @window.setpos(10, 1)
     @window.addstr("Score: #{sprintf("%7d",json_data["score"])}")
     @window.refresh
     return json_data
@@ -71,7 +71,7 @@ class Game
     init_grid
     json_data = get_json(HOST+'/hi/start/json')
     @session_id = json_data["session_id"]
-    @window.setpos(20, 1)
+    @window.setpos(11, 1)
     @window.addstr("Game Start!!")
     str = ""
     for i in 0...4
@@ -84,7 +84,7 @@ class Game
     IO.popen('./2048ai',"r+") do |io|
       io.puts str
       for line in io
-        @window.setpos(16, 1)
+        @window.setpos(8, 1)
         @window.addstr(cnt.to_s)
         @window.refresh
         data = JSON.parse(line)
@@ -101,13 +101,10 @@ class Game
             end
           end
           io.puts str
-        when "debug" then
-          @window.setpos(17, 1)
-          @window.addstr("average est. value: " + data["score"].to_s)
         end
         cnt += 1
       end
-      @window.setpos(20, 1)
+      @window.setpos(11, 1)
       @window.addstr("Game Over!!!")
       @window.refresh
     end
@@ -155,8 +152,7 @@ def init_window(window)
   for i in 0...4
     grid[i] = Array.new(4)
     for j in 0...4
-      grid[i][j] = window.subwin(3, 8, i * 3 + 2, j * 9 + 1)
-      grid[i][j].box(?|,?-,?+)
+      grid[i][j] = window.subwin(1, 6, i * 2 + 1, j * 7 + 1)
       grid[i][j].refresh
     end
   end
@@ -184,7 +180,7 @@ Curses::init_pair(15 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
 Curses::init_pair(16 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
 Curses::init_pair(17 ,Curses::COLOR_BLACK  ,Curses::COLOR_CYAN   )
 
-WINDOW_NUM = 1
+WINDOW_NUM = 2
 $root_window = Window_Wrapper.new
 $root_window.setpos(0, 0)
 $root_window.addstr("great AI - 2048 AI")
@@ -192,20 +188,25 @@ $root_window.refresh
 $window = Array.new(WINDOW_NUM)
 $grids = Array.new(WINDOW_NUM)
 for i in 0...WINDOW_NUM
-  $window[i] = $root_window.subwin(22, 49, 1, 50 * i)
+  $window[i] = $root_window.subwin(13, 29, 1, 30 * i)
   $window[i].box(?|,?-,?+)
   $grids[i] = init_window($window[i])
   $window[i].refresh
 end
 loop do
-  break if Curses::getstr == "quit"
-  threads = Array.new
-  for i in 0...WINDOW_NUM
-    threads.push(Thread.start(i) {|i|
-      game = Game.new
-      game.start($window[i])
-    })
+  line = Curses::getstr
+  case line
+  when "quit" then
+    break
+  when "go" then
+    threads = Array.new
+    for i in 0...WINDOW_NUM
+      threads.push(Thread.start(i) {|i|
+        game = Game.new
+        game.start($window[i])
+      })
+    end
+    threads.each{|th| th.join}
   end
-  threads.each{|th| th.join}
 end
 Curses::close_screen
