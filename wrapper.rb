@@ -142,6 +142,9 @@ class Window_Wrapper
   def attroff(arg)
     @window.attroff(arg)
   end
+  def clear
+    @window.clear
+  end
   def children
     return @children
   end
@@ -193,8 +196,16 @@ for i in 0...WINDOW_NUM
   $grids[i] = init_window($window[i])
   $window[i].refresh
 end
+$root_window.setpos(15 ,0)
+$root_window.addstr("command: ")
+$root_window.refresh
 loop do
   line = Curses::getstr
+  for i in 0...WINDOW_NUM
+    $window[i].clear
+    $window[i].box(?|,?-,?+)
+    $window[i].refresh
+  end
   case line
   when "quit" then
     break
@@ -208,5 +219,8 @@ loop do
     end
     threads.each{|th| th.join}
   end
+  $root_window.setpos(15 ,0)
+  $root_window.addstr("command: ")
+  $root_window.refresh
 end
 Curses::close_screen
