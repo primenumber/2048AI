@@ -20,7 +20,7 @@ int GameDAG::gameover_score() {
 
 void GameDAG::make_children(
     std::map<game::Game, std::shared_ptr<GameDAG>>& game_map) {
-  auto nexts = game.getAllNextStates();
+  auto nexts = game.getAllNextStatesFillWith2();
   for (const auto& next_state : nexts) {
     auto itr = std::find_if(std::begin(children), std::end(children),
         [&next_state](const Edge& child) {
@@ -82,11 +82,11 @@ int GameDAG::alpha_beta_impl(std::map<game::Game, std::shared_ptr<GameDAG>>& gam
   int count = 0;
   for (auto& edge: children) {
     ++count;
-    edge.value = -edge.child_ptr->alpha_beta_search(
+    edge.value = edge.child_ptr->alpha_beta_search(
         game_map,
         depth - 1,
-        -beta,
-        -alpha);
+        alpha,
+        beta);
     if (alpha < edge.value) {
       alpha = edge.value;
       if (alpha >= beta) {

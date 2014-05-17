@@ -141,12 +141,12 @@ int corner_score(const grid::Grid& grid) {
 int asi_score(const grid::Grid& grid) {
   constexpr int vtable[2][4][4] = {
     {
-      {80, 40, 40, 40},
+      {80, 40, 40, 50},
       {35, 10, 10, 10},
       { 3,  1,  1,  3},
       { 1,  1,  1,  1}
     },{
-      {40, 40, 40, 80},
+      {50, 40, 40, 80},
       {10, 10, 10, 35},
       { 3,  1,  1,  3},
       { 1,  1,  1,  1}
