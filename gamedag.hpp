@@ -21,29 +21,35 @@ class Edge : boost::operators<Edge> {
   int i;
   int j;
   int k;
+  int value;
 };
 
 class GameDAG {
  public:
   explicit GameDAG(const game::Game& game_)
-      : game(game_), children(),
-      value_min(kVALUE_MIN), value_max(kVALUE_MAX) {}
+      : game(game_), children() {}
   explicit GameDAG(game::Game&& game_)
-      : game(std::move(game_)), children(),
-      value_min(kVALUE_MIN), value_max(kVALUE_MAX) {}
+      : game(std::move(game_)), children() {}
   int alpha_beta_search(
-      std::map<game::Game, std::shared_ptr<GameDAG>> game_map,
+      std::map<game::Game, std::shared_ptr<GameDAG>>& game_map,
       int depth, int alpha = kVALUE_MIN, int beta = kVALUE_MAX);
   grid::Direction getOptimal(
-      std::map<game::Game, std::shared_ptr<GameDAG>> game_map,
+      std::map<game::Game, std::shared_ptr<GameDAG>>& game_map,
       int depth);
   game::Game game;
   std::vector<Edge> children;
   constexpr static int kVALUE_MIN = -1000000000;
   constexpr static int kVALUE_MAX = 1000000000;
-  int value_min;
-  int value_max;
+  int value_min = kVALUE_MIN;
+  int value_max = kVALUE_MAX;
+  int score_depth = 0;
  private:
+  int alpha_beta_impl(std::map<game::Game, std::shared_ptr<GameDAG>>& game_map,
+      int depth, int alpha, int beta);
+  void make_children(std::map<game::Game, std::shared_ptr<GameDAG>>& game_map);
+  int static_score();
+  int gameover_score();
+  void update_values(int value);
 };
 
 bool operator<(const Edge&, const Edge&);

@@ -4,15 +4,16 @@
 
 namespace ai2048 {
 namespace score {
-constexpr int sorted_weight    =  80;
-constexpr int corner_weight    =   0;
-constexpr int zero_weight      =   0;
-constexpr int same_weight      =   3;
-constexpr int movable_weight   =   0;
-constexpr int max_weight       =   0;
-constexpr int sq_sum_weight    = 100;
-constexpr int divided_weight   = 100;
-constexpr int max_space_weight =   0;
+constexpr int sorted_weight     =   0;
+constexpr int corner_weight     =   0;
+constexpr int zero_weight       =   0;
+constexpr int same_weight       =   0;
+constexpr int movable_weight    =   0;
+constexpr int max_weight        =   0;
+constexpr int sq_sum_weight     =   0;
+constexpr int divided_weight    =   0;
+constexpr int max_space_weight  =   0;
+constexpr int asi_weight        = 100;
 
 int zero_score(const grid::Grid& grid) {
   int zero_number = 0;
@@ -137,6 +138,36 @@ int corner_score(const grid::Grid& grid) {
       - grid.table[1][1] - grid.table[1][2] - grid.table[2][1] - grid.table[2][2];
 }
 
+int asi_score(const grid::Grid& grid) {
+  constexpr int vtable[2][4][4] = {
+    {
+      {80, 40, 40, 40},
+      {35, 10, 10, 10},
+      { 3,  1,  1,  3},
+      { 1,  1,  1,  1}
+    },{
+      {40, 40, 40, 80},
+      {10, 10, 10, 35},
+      { 3,  1,  1,  3},
+      { 1,  1,  1,  1}
+    }
+  };
+  int vmax = 0;
+  for (int i = 0; i < 4; ++i) {
+    grid::Grid r_grid = grid.rotate(i);
+    for (int j = 0; j < 2; ++j) {
+      int sum = 0;
+      for (int k = 0; k < 4; ++k) {
+        for (int l = 0; l < 4; ++l) {
+          sum += vtable[j][k][l] * grid.table[k][l];
+        }
+      }
+      vmax = std::max(vmax, sum);
+    }
+  }
+  return vmax;
+}
+
 int static_score(const grid::Grid& grid) {
   int max_number = 0;
   for (int i = 0; i < 4; ++i)
@@ -151,7 +182,8 @@ int static_score(const grid::Grid& grid) {
       + max_number * max_weight
       + divided_score(grid) * divided_weight
       + grid.sq_sum_tiles() * sq_sum_weight
-      + max_space_score(grid) * sum * max_space_weight;
+      + max_space_score(grid) * sum * max_space_weight
+      + asi_score(grid) * asi_weight;
 }
 
 int static_score_light(const grid::Grid& grid) {

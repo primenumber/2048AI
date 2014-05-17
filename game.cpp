@@ -29,6 +29,22 @@ std::vector<std::tuple<Game, int, int, int>> Game::getAllNextStates() const {
   return nexts;
 }
 
+std::vector<std::tuple<Game, int, int, int>> Game::getAllNextStatesFillWith2() const {
+  std::vector<std::tuple<Game, int, int, int>> nexts;
+  if (state == State::Player) {
+    auto movable = grid.movable_directions();
+    for (grid::Direction dir : movable) {
+      grid::Grid moved = grid.move(dir);
+      auto zeros = moved.zero_tiles();
+      for (auto& tile : zeros) {
+        moved.table[tile.first][tile.second] = 2;
+      }
+      nexts.emplace_back(Game(moved, State::Player), dir, 0, 0);
+    }
+  }
+  return nexts;
+}
+
 bool operator==(const Game& lhs, const Game& rhs) {
   return lhs.grid == rhs.grid && lhs.state == rhs.state;
 }

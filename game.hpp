@@ -22,6 +22,7 @@ class Game {
   Game& operator=(const Game&) = default;
   Game& operator=(Game&&) = default;
   std::vector<std::tuple<Game, int, int ,int>> getAllNextStates() const;
+  std::vector<std::tuple<Game, int, int ,int>> getAllNextStatesFillWith2() const;
   grid::Grid grid;
   State state;
 };

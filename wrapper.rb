@@ -11,7 +11,7 @@ else
   HOST = 'http://2048.semantics3.com'
 end
 
-$move_direction_str = ["↑","→","↓","←"]
+$move_direction_str = ["^",">","v","<"]
 
 def get_json(location)
   text = ""
