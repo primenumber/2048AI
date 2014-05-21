@@ -11,9 +11,11 @@ int main() {
   init_random();
   while (true) {
     ai2048::grid::Grid grid;
-    for (auto& a : grid.table) {
-      for (auto& e : a) {
-        std::cin >> e;
+    for (auto& a : grid.lines) {
+      for (int i = 0; i < 4; ++i) {
+        int v;
+        std::cin >> v;
+        a.set(i, v);
       }
     }
     auto movable = grid.movable_directions();

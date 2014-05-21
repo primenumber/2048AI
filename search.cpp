@@ -55,10 +55,10 @@ int alpha_beta_host(grid::Grid grid,
     int alpha, int beta, int depth) {
   if (depth == 0) return score::static_score_light(grid);
   auto zeros = grid.zero_tiles();
-  int numbers[2] = {2, 4};
+  int numbers[2] = {1, 2};
   for (auto tile : zeros) {
     for (int i = 0; i < 2; ++i) {
-      grid.table[tile.first][tile.second] = numbers[i];
+      grid[tile.first][tile.second] = numbers[i];
       int score = alpha_beta_player(grid, scores, alpha, beta, depth);
       if (score < beta) {
         beta = score;
@@ -67,7 +67,7 @@ int alpha_beta_host(grid::Grid grid,
         }
       }
     }
-    grid.table[tile.first][tile.second] = 0;
+    grid[tile.first][tile.second] = 0;
   }
   return beta;
 }
@@ -121,7 +121,7 @@ std::pair<int64_t, int> playout(const grid::Grid& grid, int direction, int depth
   grid::Grid moved = grid.move(direction);
   auto zeros = moved.zero_tiles();
   int z = mt() % zeros.size();
-  moved.table[zeros[z].first][zeros[z].second] = ((mt() % 2) >= 1) ? 2 : 4;
+  moved[zeros[z].first][zeros[z].second] = ((mt() % 2) >= 1) ? 1 : 2;
   auto movable = moved.movable_directions();
   int max_score = -1000000000;
   int max_i = -1;

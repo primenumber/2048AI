@@ -17,13 +17,13 @@ std::vector<std::tuple<Game, int, int, int>> Game::getAllNextStates() const {
   } else {
     auto zeros = grid.zero_tiles();
     grid::Grid c_grid = grid;
-    int add_numbers[2] = {2, 4};
+    int add_numbers[2] = {1, 2};
     for (auto& tile : zeros) {
       for (int i = 0; i < 2; ++i) {
-        c_grid.table[tile.first][tile.second] = add_numbers[i];
+        c_grid[tile.first][tile.second] = add_numbers[i];
         nexts.emplace_back(Game(c_grid, State::Player), tile.first, tile.second, add_numbers[i]);
       }
-      c_grid.table[tile.first][tile.second] = 0;
+      c_grid[tile.first][tile.second] = 0;
     }
   }
   return nexts;
@@ -37,7 +37,7 @@ std::vector<std::tuple<Game, int, int, int>> Game::getAllNextStatesFillWith2() c
       grid::Grid moved = grid.move(dir);
       auto zeros = moved.zero_tiles();
       for (auto& tile : zeros) {
-        moved.table[tile.first][tile.second] = 2;
+        moved[tile.first][tile.second] = 1;
       }
       nexts.emplace_back(Game(moved, State::Player), dir, 0, 0);
     }

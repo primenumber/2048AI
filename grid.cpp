@@ -4,32 +4,35 @@ namespace ai2048 {
 namespace grid {
 
 // public functions
-Grid Grid::rotate(int rotation) const {
-  if (rotation == 0) return *this;
-  Grid result = *this;
-  switch (rotation) {
-   case 2:
-   case 3:
-    for (int i = 0; i < 2; ++i) {
-      for (int j = 0; j < 2; ++j) {
-        std::swap(result.table[i][j], result.table[3-i][3-j]);
-        std::swap(result.table[j][3-i], result.table[3-j][i]);
-      }
-    }
-    if (rotation == 2) break;
+int Grid::at(const int i, const int j) const {
+  int value = 1 << tiles[i * 4 + j];
+  return value > 1 ? value : 0;
+}
+
+uint8_t Grid::at_raw(const int i, const int j) const {
+  return tiles[i * 4 + j];
+}
+
+Grid Grid::Rotate(int rotation) const {
+  return Grid(*this).RotateThis(rotation);
+}
+
+Grid& Grid::RotateThis(int rotation) {
+  switch(rotation) {
    case 1:
-    for (int i = 0; i < 2; ++i) {
-      for (int j = 0; j < 2; ++j) {
-        int tmp = result.table[i][j];
-        result.table[i][j] = result.table[j][3-i];
-        result.table[j][3-i] = result.table[3-i][3-j];
-        result.table[3-i][3-j] = result.table[3-j][i];
-        result.table[3-j][i] = tmp;
-      }
-    }
+    FlipHorizontal();
+    Transpose();
+    break;
+   case 2:
+    FlipHorizontal();
+    FlipVertical();
+    break;
+   case 3:
+    Transpose();
+    FlipHorizontal();
     break;
   }
-  return result;
+  return *this;
 }
 
 bool Grid::is_movable(Direction direction) const {
@@ -54,7 +57,7 @@ std::vector<std::pair<int, int>> Grid::zero_tiles() const {
   std::vector<std::pair<int, int>> results;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      if (table[i][j] == 0)
+      if (at_raw(i, j) == 0)
         results.emplace_back(i, j);
   return results;
 }
@@ -73,7 +76,7 @@ int Grid::sum_tiles() const {
   int sum = 0;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      sum += table[i][j];
+      sum += at(i, j);
   return sum;
 }
 
@@ -81,16 +84,47 @@ int64_t Grid::sq_sum_tiles() const {
   int64_t sum = 0;
   for (int i = 0; i < 4; ++i)
     for (int j = 0; j < 4; ++j)
-      sum += (int64_t)table[i][j] * table[i][j];
+      sum += (int64_t)at(i, j) * at(i, j);
   return sum;
+}
+
+// for Little-endian
+Grid& Grid::Transpose() {
+  double_lines[0] = (double_lines[0] & UINT64_C(0xFF00FF0000FF00FF))
+      | ((double_lines[0] & UINT64_C(0x00FF00FF00000000)) >> 24)
+      | ((double_lines[0] & UINT64_C(0x00000000FF00FF00)) << 24);
+  double_lines[1] = (double_lines[1] & UINT64_C(0xFF00FF0000FF00FF))
+      | ((double_lines[1] & UINT64_C(0x00FF00FF00000000)) >> 24)
+      | ((double_lines[1] & UINT64_C(0x00000000FF00FF00)) << 24);
+  uint64_t tmp = double_lines[0] & UINT64_C(0xFFFF0000FFFF0000);
+  double_lines[0] = (double_lines[0] & UINT64_C(0x0000FFFF0000FFFF))
+      | ((double_lines[1] & UINT64_C(0x0000FFFF0000FFFF)) << 16);
+  double_lines[1] = (double_lines[1] & UINT64_C(0xFFFF0000FFFF0000))
+      | (tmp >> 16);
+}
+
+Grid& Grid::FlipHorizontal() {
+  double_lines[0] = ((double_lines[0] & UINT64_C(0xFFFF0000FFFF0000)) >> 16)
+      | ((double_lines[0] & UINT64_C(0x0000FFFF0000FFFF)) << 16);
+  double_lines[0] = ((double_lines[0] & UINT64_C(0xFF00FF00FF00FF00)) >> 8)
+      | ((double_lines[0] & UINT64_C(0x00FF00FF00FF00FF)) << 8);
+  double_lines[1] = ((double_lines[1] & UINT64_C(0xFFFF0000FFFF0000)) >> 16)
+      | ((double_lines[1] & UINT64_C(0x0000FFFF0000FFFF)) << 16);
+  double_lines[1] = ((double_lines[1] & UINT64_C(0xFF00FF00FF00FF00)) >> 8)
+      | ((double_lines[1] & UINT64_C(0x00FF00FF00FF00FF)) << 8);
+}
+
+Grid& Grid::FlipVertical() {
+  std::swap(lines[0], lines[3]);
+  std::swap(lines[1], lines[2]);
 }
 
 // private methods
 bool Grid::is_movable_up() const {
   for (int i = 0; i < 4; ++i) {
     for (int j = 1; j < 4; ++j) {
-      if (table[j][i] == 0) continue;
-      if (table[j][i] == table[j-1][i] || table[j-1][i] == 0)
+      if (at_raw(j, i) == 0) continue;
+      if (at_raw(j, i) == at_raw(j-1, i) || at_raw(j-1, i) == 0)
         return true;
     }
   }
@@ -100,8 +134,8 @@ bool Grid::is_movable_up() const {
 bool Grid::is_movable_right() const {
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 3; ++j) {
-      if (table[i][j] == 0) continue;
-      if (table[i][j] == table[i][j+1] || table[i][j+1] == 0)
+      if (at_raw(i, j) == 0) continue;
+      if (at_raw(i, j) == at_raw(i, j+1) || at_raw(i, j+1) == 0)
         return true;
     }
   }
@@ -111,8 +145,8 @@ bool Grid::is_movable_right() const {
 bool Grid::is_movable_down() const {
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 3; ++j) {
-      if (table[j][i] == 0) continue;
-      if (table[j][i] == table[j+1][i] || table[j+1][i] == 0)
+      if (at_raw(j, i) == 0) continue;
+      if (at_raw(j, i) == at_raw(j+1, i) || at_raw(j+1, i) == 0)
         return true;
     }
   }
@@ -122,8 +156,8 @@ bool Grid::is_movable_down() const {
 bool Grid::is_movable_left() const {
   for (int i = 0; i < 4; ++i) {
     for (int j = 1; j < 4; ++j) {
-      if (table[i][j] == 0) continue;
-      if (table[i][j] == table[i][j-1] || table[i][j-1] == 0)
+      if (at_raw(i, j) == 0) continue;
+      if (at_raw(i, j) == at_raw(i, j-1) || at_raw(i, j-1) == 0)
         return true;
     }
   }
@@ -137,19 +171,19 @@ Grid Grid::move_up() const {
     for (int j = 1; j < 4; ++j) {
       int k;
       for (k = j - 1; k >= 0; --k) {
-        if (c_grid.table[k][i] != 0) {
-          if (c_grid.table[k][i] != c_grid.table[k+1][i] || joined) {
+        if (c_grid[k][i] != 0) {
+          if (c_grid[k][i] != c_grid[k+1][i] || joined) {
             joined = false;
             break;
           } else {
-            c_grid.table[k][i] *= 2;
-            c_grid.table[k+1][i] = 0;
+            ++c_grid[k][i];
+            c_grid[k+1][i] = 0;
             joined = true;
             break;
           }
         } else {
-          c_grid.table[k][i] = c_grid.table[k+1][i];
-          c_grid.table[k+1][i] = 0;
+          c_grid[k][i] = c_grid[k+1][i];
+          c_grid[k+1][i] = 0;
         }
       }
       if (k < 0) joined = false;
@@ -165,19 +199,19 @@ Grid Grid::move_right() const {
     for (int j = 2; j >= 0; --j) {
       int k;
       for (k = j + 1; k < 4; ++k) {
-        if (c_grid.table[i][k] != 0) {
-          if (c_grid.table[i][k] != c_grid.table[i][k-1] || joined) {
+        if (c_grid[i][k] != 0) {
+          if (c_grid[i][k] != c_grid[i][k-1] || joined) {
             joined = false;
             break;
           } else {
-            c_grid.table[i][k] *= 2;
-            c_grid.table[i][k-1] = 0;
+            ++c_grid[i][k];
+            c_grid[i][k-1] = 0;
             joined = true;
             break;
           }
         } else {
-          c_grid.table[i][k] = c_grid.table[i][k-1];
-          c_grid.table[i][k-1] = 0;
+          c_grid[i][k] = c_grid[i][k-1];
+          c_grid[i][k-1] = 0;
         }
       }
       if (k >= 4) joined = false;
@@ -193,19 +227,19 @@ Grid Grid::move_down() const {
     for (int j = 2; j >= 0; --j) {
       int k;
       for (k = j + 1; k < 4; ++k) {
-        if (c_grid.table[k][i] != 0) {
-          if (c_grid.table[k][i] != c_grid.table[k-1][i] || joined) {
+        if (c_grid[k][i] != 0) {
+          if (c_grid[k][i] != c_grid[k-1][i] || joined) {
             joined = false;
             break;
           } else {
-            c_grid.table[k][i] *= 2;
-            c_grid.table[k-1][i] = 0;
+            ++c_grid[k][i];
+            c_grid[k-1][i] = 0;
             joined = true;
             break;
           }
         } else {
-          c_grid.table[k][i] = c_grid.table[k-1][i];
-          c_grid.table[k-1][i] = 0;
+          c_grid[k][i] = c_grid[k-1][i];
+          c_grid[k-1][i] = 0;
         }
       }
       if (k >= 4) joined = false;
@@ -221,19 +255,19 @@ Grid Grid::move_left() const {
     for (int j = 1; j < 4; ++j) {
       int k;
       for (k = j - 1; k >= 0; --k) {
-        if (c_grid.table[i][k] != 0) {
-          if (c_grid.table[i][k] != c_grid.table[i][k+1] || joined) {
+        if (c_grid[i][k] != 0) {
+          if (c_grid[i][k] != c_grid[i][k+1] || joined) {
             joined = false;
             break;
           } else {
-            c_grid.table[i][k] *= 2;
-            c_grid.table[i][k+1] = 0;
+            ++c_grid[i][k];
+            c_grid[i][k+1] = 0;
             joined = true;
             break;
           }
         } else {
-          c_grid.table[i][k] = c_grid.table[i][k+1];
-          c_grid.table[i][k+1] = 0;
+          c_grid[i][k] = c_grid[i][k+1];
+          c_grid[i][k+1] = 0;
         }
       }
       if (k < 0) joined = false;
@@ -244,11 +278,11 @@ Grid Grid::move_left() const {
 
 // grobal functions
 bool operator<(const Grid& lhs, const Grid& rhs) {
-  return lhs.table < rhs.table;
+  return lhs.tiles < rhs.tiles;
 }
 
 bool operator==(const Grid& lhs, const Grid& rhs) {
-  return lhs.table == rhs.table;
+  return lhs.tiles == rhs.tiles;
 }
 
 } // namespace grid
