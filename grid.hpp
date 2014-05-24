@@ -26,7 +26,8 @@ union Line {
   uint32_t data;
   std::array<uint8_t, 4> tiles;
   //member functions
-  Line(const int32_t data_) : data(data_) {}
+  Line() : data(0) {}
+  Line(const uint32_t data_) : data(data_) {}
   Line(const std::array<uint8_t, 4> tiles_) : tiles(tiles_) {}
   const uint8_t& operator[](const int index) const { return tiles[index]; }
   uint8_t& operator[](const int index) { return tiles[index]; }
@@ -40,6 +41,28 @@ union Line {
   void reverse() {
     data = (data >> 16) | (data << 16);
     data = ((data & 0xFF00FF00) >> 8) | ((data & 0x00FF00FF) << 8);
+  }
+  Line& move() {
+    return *this = move_array[to20bit(data)];
+  }
+  bool is_movable() const {
+    return movable_array[to20bit(data)];
+  }
+  //static values
+  static std::array<Line, (1 << 20)> move_array;
+  static std::array<bool, (1 << 20)> movable_array;
+  //static functions
+  static void Init();
+  static Line make_from_20bit(uint32_t data_) {
+    return Line(to32bit(data_));
+  }
+  static uint32_t to20bit(uint32_t data_) {
+    data_ = ((data_ & 0xFF00FF00) >> 3) | (data_ & 0x00FF00FF);
+    return ((data_ & 0xFFFF0000) >> 6) | (data_ & 0x0000FFFF);
+  }
+  static uint32_t to32bit(uint32_t data_) {
+    data_ = ((data_ & 0x000FFC00) << 6) | (data_ & 0x000003FF);
+    return ((data_ & 0x03E003E0) << 3) | (data_ & 0x001F001F);
   }
 };
 
@@ -74,9 +97,6 @@ union Grid {
   bool is_movable_right() const;
   bool is_movable_down() const;
   bool is_movable_left() const;
-  Grid move_up() const;
-  Grid move_right() const;
-  Grid move_down() const;
   Grid move_left() const;
 };
 

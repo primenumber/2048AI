@@ -11,6 +11,8 @@ extern std::mt19937 mt;
 namespace ai2048 {
 namespace search {
 
+int alpha_beta_host(const grid::Grid, std::map<grid::Grid, Value>&, int, int, int);
+
 int alpha_beta_player(const grid::Grid& grid,
     std::map<grid::Grid, Value>& scores,
     int alpha, int beta, int depth) {
@@ -185,7 +187,8 @@ int Monte_Carlo_search(const grid::Grid& grid) {
 
 int search(const grid::Grid& grid) {
   // return Monte_Carlo_search(grid);
-  return alpha_beta_search(grid);
+  // return alpha_beta_search(grid);
+  return simple_search(grid);
 }
 
 } // namespace search

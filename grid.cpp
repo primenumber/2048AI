@@ -3,6 +3,41 @@
 namespace ai2048 {
 namespace grid {
 
+std::array<Line, (1 << 20)> Line::move_array;
+std::array<bool, (1 << 20)> Line::movable_array;
+
+void Line::Init() {
+  for (int i = 0; i < (1 << 20); ++i) {
+    Line c_line(make_from_20bit(i));
+    bool joined = false;
+    bool movable = false;
+    for (int j = 1; j < 4; ++j) {
+      int k;
+      for (k = j - 1; k >= 0; --k) {
+        if (c_line[k] != 0) {
+          if (c_line[k] != c_line[k+1] || joined) {
+            joined = false;
+            break;
+          } else {
+            ++c_line[k];
+            c_line[k+1] = 0;
+            joined = true;
+            movable = true;
+            break;
+          }
+        } else {
+          c_line[k] = c_line[k+1];
+          c_line[k+1] = 0;
+          movable = true;
+        }
+      }
+      if (k < 0) joined = false;
+    }
+    move_array[i] = c_line;
+    movable_array[i] = movable;
+  }
+}
+
 // public functions
 int Grid::at(const int i, const int j) const {
   int value = 1 << tiles[i * 4 + j];
@@ -63,16 +98,9 @@ std::vector<std::pair<int, int>> Grid::zero_tiles() const {
 }
 
 Grid Grid::move(Direction direction) const {
-  Grid c_grid = Rotate(direction);
-  c_grid = c_grid.move_up();
-  //switch (direction) {
-    //case 0: return this->move_up();
-    //case 1: return this->move_right();
-    //case 2: return this->move_down();
-    //case 3: return this->move_left();
-    //default: return *this;
-  //}
-  c_grid.RotateThis(4-direction);
+  Grid c_grid = Rotate((direction + 3) % 4);
+  c_grid = c_grid.move_left();
+  c_grid.RotateThis(5 - direction);
   return c_grid;
 }
 
@@ -171,116 +199,12 @@ bool Grid::is_movable_left() const {
   return false;
 }
 
-Grid Grid::move_up() const {
-  Grid c_grid = Grid(*this);
-  bool joined = false;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 1; j < 4; ++j) {
-      int k;
-      for (k = j - 1; k >= 0; --k) {
-        if (c_grid[k][i] != 0) {
-          if (c_grid[k][i] != c_grid[k+1][i] || joined) {
-            joined = false;
-            break;
-          } else {
-            ++c_grid[k][i];
-            c_grid[k+1][i] = 0;
-            joined = true;
-            break;
-          }
-        } else {
-          c_grid[k][i] = c_grid[k+1][i];
-          c_grid[k+1][i] = 0;
-        }
-      }
-      if (k < 0) joined = false;
-    }
-  }
-  return c_grid;
-}
-
-Grid Grid::move_right() const {
-  Grid c_grid = Grid(*this);
-  bool joined = false;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 2; j >= 0; --j) {
-      int k;
-      for (k = j + 1; k < 4; ++k) {
-        if (c_grid[i][k] != 0) {
-          if (c_grid[i][k] != c_grid[i][k-1] || joined) {
-            joined = false;
-            break;
-          } else {
-            ++c_grid[i][k];
-            c_grid[i][k-1] = 0;
-            joined = true;
-            break;
-          }
-        } else {
-          c_grid[i][k] = c_grid[i][k-1];
-          c_grid[i][k-1] = 0;
-        }
-      }
-      if (k >= 4) joined = false;
-    }
-  }
-  return c_grid;
-}
-
-Grid Grid::move_down() const {
-  Grid c_grid = Grid(*this);
-  bool joined = false;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 2; j >= 0; --j) {
-      int k;
-      for (k = j + 1; k < 4; ++k) {
-        if (c_grid[k][i] != 0) {
-          if (c_grid[k][i] != c_grid[k-1][i] || joined) {
-            joined = false;
-            break;
-          } else {
-            ++c_grid[k][i];
-            c_grid[k-1][i] = 0;
-            joined = true;
-            break;
-          }
-        } else {
-          c_grid[k][i] = c_grid[k-1][i];
-          c_grid[k-1][i] = 0;
-        }
-      }
-      if (k >= 4) joined = false;
-    }
-  }
-  return c_grid;
-}
-
 Grid Grid::move_left() const {
-  Grid c_grid = Grid(*this);
-  bool joined = false;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 1; j < 4; ++j) {
-      int k;
-      for (k = j - 1; k >= 0; --k) {
-        if (c_grid[i][k] != 0) {
-          if (c_grid[i][k] != c_grid[i][k+1] || joined) {
-            joined = false;
-            break;
-          } else {
-            ++c_grid[i][k];
-            c_grid[i][k+1] = 0;
-            joined = true;
-            break;
-          }
-        } else {
-          c_grid[i][k] = c_grid[i][k+1];
-          c_grid[i][k+1] = 0;
-        }
-      }
-      if (k < 0) joined = false;
-    }
+  Grid cp(*this);
+  for (Line& line : cp.lines) {
+    line.move();
   }
-  return c_grid;
+  return cp;
 }
 
 // grobal functions

@@ -16,7 +16,7 @@ struct Value {
 
 int search(const grid::Grid& grid);
 
-int simplesearch(const grid::Grid& grid);
+int simple_search(const grid::Grid& grid);
 int alpha_beta_search(const grid::Grid& grid);
 int Monte_Carlo_search(const grid::Grid& grid);
 

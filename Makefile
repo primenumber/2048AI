@@ -1,6 +1,6 @@
 CXXC	 		= clang++
-CXXFLAGS	= -O3 --std=c++11 -Wall -Wextra -Weffc++
-OBJS			= 2048ai.o grid.o score.o search.o random.o game.o gamedag.o
+CXXFLAGS	= -O4 --std=c++11 -Wall -Wextra -Weffc++
+OBJS			= 2048ai.o grid.o score.o search.o random.o game.o gamedag.o simpleSearch.o
 TARGET		= 2048ai
 
 all: $(TARGET)
