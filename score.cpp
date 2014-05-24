@@ -155,7 +155,7 @@ int asi_score(const grid::Grid& grid) {
       int sum = 0;
       for (int k = 0; k < 4; ++k) {
         for (int l = 0; l < 4; ++l) {
-          sum += vtable[j][k][l] * grid.at(k, l);
+          sum += vtable[j][k][l] * r_grid.at(k, l);
         }
       }
       vmax = std::max(vmax, sum);
@@ -170,16 +170,16 @@ int static_score(const grid::Grid& grid) {
     for (int j = 0; j < 4; ++j)
       max_number = std::max(max_number, grid.at(i, j));
   int sum = grid.sum_tiles();
-  return sorted_score(grid) * sum * sorted_weight
-      + corner_score(grid) * corner_weight
-      + same_score(grid) * sum * same_weight
-      + std::log(zero_score(grid)) * sum* zero_weight
-      - movable_score(grid) * sum * movable_weight
-      + max_number * max_weight
-      + divided_score(grid) * divided_weight
-      + grid.sq_sum_tiles() * sq_sum_weight
-      + max_space_score(grid) * sum * max_space_weight
-      + asi_score(grid) * asi_weight;
+  return //sorted_score(grid) * sum * sorted_weight
+      //+ corner_score(grid) * corner_weight
+      //+ same_score(grid) * sum * same_weight
+      //+ std::log(zero_score(grid)) * sum* zero_weight
+      //- movable_score(grid) * sum * movable_weight
+      //+ max_number * max_weight
+      //+ divided_score(grid) * divided_weight
+      //+ grid.sq_sum_tiles() * sq_sum_weight
+      //+ max_space_score(grid) * sum * max_space_weight
+      asi_score(grid) * asi_weight;
 }
 
 int static_score_light(const grid::Grid& grid) {

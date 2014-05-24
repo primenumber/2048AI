@@ -63,13 +63,17 @@ std::vector<std::pair<int, int>> Grid::zero_tiles() const {
 }
 
 Grid Grid::move(Direction direction) const {
-  switch (direction) {
-    case 0: return this->move_up();
-    case 1: return this->move_right();
-    case 2: return this->move_down();
-    case 3: return this->move_left();
-    default: return *this;
-  }
+  Grid c_grid = Rotate(direction);
+  c_grid = c_grid.move_up();
+  //switch (direction) {
+    //case 0: return this->move_up();
+    //case 1: return this->move_right();
+    //case 2: return this->move_down();
+    //case 3: return this->move_left();
+    //default: return *this;
+  //}
+  c_grid.RotateThis(4-direction);
+  return c_grid;
 }
 
 int Grid::sum_tiles() const {
@@ -101,6 +105,7 @@ Grid& Grid::Transpose() {
       | ((double_lines[1] & UINT64_C(0x0000FFFF0000FFFF)) << 16);
   double_lines[1] = (double_lines[1] & UINT64_C(0xFFFF0000FFFF0000))
       | (tmp >> 16);
+  return *this;
 }
 
 Grid& Grid::FlipHorizontal() {
@@ -112,11 +117,13 @@ Grid& Grid::FlipHorizontal() {
       | ((double_lines[1] & UINT64_C(0x0000FFFF0000FFFF)) << 16);
   double_lines[1] = ((double_lines[1] & UINT64_C(0xFF00FF00FF00FF00)) >> 8)
       | ((double_lines[1] & UINT64_C(0x00FF00FF00FF00FF)) << 8);
+  return *this;
 }
 
 Grid& Grid::FlipVertical() {
   std::swap(lines[0], lines[3]);
   std::swap(lines[1], lines[2]);
+  return *this;
 }
 
 // private methods

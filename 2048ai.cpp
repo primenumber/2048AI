@@ -18,25 +18,29 @@ int main() {
         a.set(i, v);
       }
     }
-    auto movable = grid.movable_directions();
-    if (movable.empty()) break;
-    ai2048::grid::Direction move;// = ai2048::search::alpha_beta_search(grid);
-    std::shared_ptr<ai2048::gamedag::GameDAG> root(
-        std::make_shared<ai2048::gamedag::GameDAG>(
-            ai2048::game::Game(grid, ai2048::game::State::Player)));
-    std::map<ai2048::game::Game, std::shared_ptr<ai2048::gamedag::GameDAG>> m;
-    for (int d = 5; d < 40; ++d) {
-      auto start = std::chrono::system_clock::now();
-      move = root->getOptimal(m, d);
-      auto end = std::chrono::system_clock::now();
-      auto elapsed = end - start;
-      if (elapsed.count() > 50000) {
-        std::cout << "{\"type\":\"debug\",\"score\":" << d << "}" << std::endl;
-        break;
-      }
-    }
+    ai2048::grid::Direction move = ai2048::search::search(grid);
     std::cout << "{\"type\":\"move\",\"direction\":"<< move <<"}"<< std::endl;
   }
   return 0;
+    //auto movable = grid.movable_directions();
+    //if (movable.empty()) break;
+    //ai2048::grid::Direction move;// = ai2048::search::alpha_beta_search(grid);
+    //std::shared_ptr<ai2048::gamedag::GameDAG> root(
+        //std::make_shared<ai2048::gamedag::GameDAG>(
+            //ai2048::game::Game(grid, ai2048::game::State::Player)));
+    //std::map<ai2048::game::Game, std::shared_ptr<ai2048::gamedag::GameDAG>> m;
+    //for (int d = 5; d < 40; ++d) {
+      //auto start = std::chrono::system_clock::now();
+      //move = root->getOptimal(m, d);
+      //auto end = std::chrono::system_clock::now();
+      //auto elapsed = end - start;
+      //if (elapsed.count() > 50000) {
+        //std::cout << "{\"type\":\"debug\",\"score\":" << d << "}" << std::endl;
+        //break;
+      //}
+    //}
+    //std::cout << "{\"type\":\"move\",\"direction\":"<< move <<"}"<< std::endl;
+  //}
+  //return 0;
 }
 
