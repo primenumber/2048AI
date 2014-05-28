@@ -165,11 +165,11 @@ int asi_score(const grid::Grid& grid) {
 }
 
 int static_score(const grid::Grid& grid) {
-  int max_number = 0;
-  for (int i = 0; i < 4; ++i)
-    for (int j = 0; j < 4; ++j)
-      max_number = std::max(max_number, grid.at(i, j));
-  int sum = grid.sum_tiles();
+  //int max_number = 0;
+  //for (int i = 0; i < 4; ++i)
+    //for (int j = 0; j < 4; ++j)
+      //max_number = std::max(max_number, grid.at(i, j));
+  //int sum = grid.sum_tiles();
   return //sorted_score(grid) * sum * sorted_weight
       //+ corner_score(grid) * corner_weight
       //+ same_score(grid) * sum * same_weight

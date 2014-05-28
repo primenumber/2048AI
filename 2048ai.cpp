@@ -9,6 +9,7 @@
 int main() {
   using namespace ai2048::grid;
   init_random();
+  Line::Init();
   while (true) {
     ai2048::grid::Grid grid;
     for (auto& a : grid.lines) {
