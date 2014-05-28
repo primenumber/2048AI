@@ -9,33 +9,37 @@ std::array<bool, (1 << 20)> Line::movable_array;
 void Line::Init() {
   for (int i = 0; i < (1 << 20); ++i) {
     Line c_line(make_from_20bit(i));
-    bool joined = false;
-    bool movable = false;
-    for (int j = 1; j < 4; ++j) {
-      int k;
-      for (k = j - 1; k >= 0; --k) {
-        if (c_line[k] != 0) {
-          if (c_line[k] != c_line[k+1] || joined) {
-            joined = false;
-            break;
-          } else {
-            ++c_line[k];
-            c_line[k+1] = 0;
-            joined = true;
-            movable = true;
-            break;
-          }
+    move_array[i] = c_line.move_impl();
+    movable_array[i] = (make_from_20bit(i) != move_array[i]);
+  }
+}
+
+Line& Line::move_impl() {
+  bool joined = false;
+  bool movable = false;
+  for (int j = 1; j < 4; ++j) {
+    if (tiles[j] == 0) continue;
+    int k;
+    for (k = j - 1; k >= 0; --k) {
+      if (tiles[k] != 0) {
+        if (tiles[k] != tiles[k+1] || joined) {
+          joined = false;
         } else {
-          c_line[k] = c_line[k+1];
-          c_line[k+1] = 0;
+          ++tiles[k];
+          tiles[k+1] = 0;
+          joined = true;
           movable = true;
         }
+        break;
+      } else {
+        tiles[k] = tiles[k+1];
+        tiles[k+1] = 0;
+        movable = true;
       }
-      if (k < 0) joined = false;
     }
-    move_array[i] = c_line;
-    movable_array[i] = movable;
+    if (k < 0) joined = false;
   }
+  return *this;
 }
 
 // public functions
@@ -71,13 +75,8 @@ Grid& Grid::RotateThis(int rotation) {
 }
 
 bool Grid::is_movable(Direction direction) const {
-  switch (direction) {
-    case UP: return is_movable_up();
-    case RIGHT: return is_movable_right();
-    case DOWN: return is_movable_down();
-    case LEFT: return is_movable_left();
-    default: return false;
-  }
+  Grid c_grid = Rotate((direction + 1) % 4);
+  return c_grid.is_movable_left();
 }
 
 std::vector<Direction> Grid::movable_directions() const {
@@ -98,9 +97,9 @@ std::vector<std::pair<int, int>> Grid::zero_tiles() const {
 }
 
 Grid Grid::move(Direction direction) const {
-  Grid c_grid = Rotate((direction + 3) % 4);
+  Grid c_grid = Rotate((direction + 1) % 4);
   c_grid = c_grid.move_left();
-  c_grid.RotateThis(5 - direction);
+  c_grid.RotateThis((3 - direction) % 4);
   return c_grid;
 }
 
@@ -155,46 +154,10 @@ Grid& Grid::FlipVertical() {
 }
 
 // private methods
-bool Grid::is_movable_up() const {
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 1; j < 4; ++j) {
-      if (at_raw(j, i) == 0) continue;
-      if (at_raw(j, i) == at_raw(j-1, i) || at_raw(j-1, i) == 0)
-        return true;
-    }
-  }
-  return false;
-}
-
-bool Grid::is_movable_right() const {
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      if (at_raw(i, j) == 0) continue;
-      if (at_raw(i, j) == at_raw(i, j+1) || at_raw(i, j+1) == 0)
-        return true;
-    }
-  }
-  return false;
-}
-
-bool Grid::is_movable_down() const {
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      if (at_raw(j, i) == 0) continue;
-      if (at_raw(j, i) == at_raw(j+1, i) || at_raw(j+1, i) == 0)
-        return true;
-    }
-  }
-  return false;
-}
-
 bool Grid::is_movable_left() const {
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 1; j < 4; ++j) {
-      if (at_raw(i, j) == 0) continue;
-      if (at_raw(i, j) == at_raw(i, j-1) || at_raw(i, j-1) == 0)
-        return true;
-    }
+  for (const Line& line : lines) {
+    if (line.is_movable())
+      return true;
   }
   return false;
 }
@@ -210,6 +173,14 @@ Grid Grid::move_left() const {
 // grobal functions
 bool operator<(const Grid& lhs, const Grid& rhs) {
   return lhs.tiles < rhs.tiles;
+}
+
+bool operator==(const Line& lhs, const Line& rhs) {
+  return lhs.data == rhs.data;
+}
+
+bool operator!=(const Line& lhs, const Line& rhs) {
+  return lhs.data != rhs.data;
 }
 
 bool operator==(const Grid& lhs, const Grid& rhs) {

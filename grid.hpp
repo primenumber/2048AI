@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 namespace ai2048 {
 namespace grid {
@@ -48,12 +49,22 @@ union Line {
   bool is_movable() const {
     return movable_array[to20bit(data)];
   }
+  std::string toString() const {
+    std::stringstream ss;
+    ss << '[';
+    for (int i = 0; i < 4; ++i) {
+      if (i) ss << ", ";
+      ss << at(i);
+    }
+    ss << ']';
+    return ss.str();
+  }
   //static values
   static std::array<Line, (1 << 20)> move_array;
   static std::array<bool, (1 << 20)> movable_array;
   //static functions
   static void Init();
-  static Line make_from_20bit(uint32_t data_) {
+  static Line make_from_20bit(const uint32_t data_) {
     return Line(to32bit(data_));
   }
   static uint32_t to20bit(uint32_t data_) {
@@ -64,6 +75,13 @@ union Line {
     data_ = ((data_ & 0x000FFC00) << 6) | (data_ & 0x000003FF);
     return ((data_ & 0x03E003E0) << 3) | (data_ & 0x001F001F);
   }
+  static uint32_t convertEndian(uint32_t data_) {
+    data_ = ((data_ & 0xFFFF0000) >> 16) | ((data_ & 0x0000FFFF) << 16);
+    data_ = ((data_ & 0xFF00FF00) >> 8) | ((data_ & 0x00FF00FF) << 8);
+    return data_;
+  }
+ private:
+  Line& move_impl();
 };
 
 union Grid {
@@ -93,14 +111,13 @@ union Grid {
   Grid& FlipHorizontal();
   Grid& FlipVertical();
  private:
-  bool is_movable_up() const;
-  bool is_movable_right() const;
-  bool is_movable_down() const;
   bool is_movable_left() const;
   Grid move_left() const;
 };
 
 bool operator<(const Grid&, const Grid&);
+bool operator==(const Line&, const Line&);
+bool operator!=(const Line&, const Line&);
 bool operator==(const Grid&, const Grid&);
 
 
