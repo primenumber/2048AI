@@ -42,9 +42,10 @@ bool operator>(const HistoryGrid& lhs, const HistoryGrid& rhs) {
 }
 
 int simple_search(const grid::Grid& grid) {
-  const int max_node = 3000;
+  const int max_node = 10000;
+  const int max_depth = 8;
   std::vector<HistoryGrid> all_grids = HistoryGrid(grid, 0).getAllNextStatesFillWith2();
-  for (int i = 0; i < 20; ++i) {
+  for (int i = 0; i < max_depth; ++i) {
     std::vector<HistoryGrid> next_grids;
     for (auto& now_grid : all_grids) {
       auto nexts = now_grid.getAllNextStatesFillWith2(now_grid.direction);
@@ -52,20 +53,14 @@ int simple_search(const grid::Grid& grid) {
     }
     if (next_grids.size() == 0) break;
     all_grids.swap(next_grids);
-    std::sort(std::begin(all_grids), std::end(all_grids), std::greater<HistoryGrid>());
+    std::partial_sort(std::begin(all_grids),
+        std::min(std::end(all_grids), std::begin(all_grids) + max_node),
+        std::end(all_grids),
+        std::greater<HistoryGrid>());
     if (all_grids.size() > max_node) 
       all_grids.resize(max_node, HistoryGrid(grid));
   }
-  int score_max = 0;
-  int optimal = 0;
-  for (auto& hoge : all_grids) {
-    int score = score::static_score(hoge.grid);
-    if (score > score_max) {
-      score_max = score;
-      optimal = hoge.direction;
-    }
-  }
-  return optimal;
+  return all_grids.front().direction;
 }
 
 
