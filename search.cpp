@@ -125,20 +125,12 @@ std::pair<int64_t, int> playout(const grid::Grid& grid, int direction, int depth
   int z = mt() % zeros.size();
   moved[zeros[z].first][zeros[z].second] = ((mt() % 2) >= 1) ? 1 : 2;
   auto movable = moved.movable_directions();
-  int max_score = -1000000000;
-  int max_i = -1;
-  for (int dir : movable) {
-    int score = score::static_score_light(moved.move(dir));
-    if (score > max_score) {
-      max_score = score;
-      max_i = dir;
-    }
-  }
   if (!movable.empty()) {
-    auto result = playout(moved, max_i, depth - 1);
+    int dir = movable[mt() % movable.size()];
+    auto result = playout(moved, dir, depth - 1);
     return std::make_pair(result.first + 1, result.second + 1);
   } else {
-    return std::make_pair(moved.sum_tiles(), 1);
+    return std::make_pair(0, 1);
   }
 }
 
@@ -154,8 +146,8 @@ int Monte_Carlo_search(const grid::Grid& grid) {
     play.playout(result.first);
     playout_count += result.second;
   }
-  int sum = grid.sum_tiles();
-  for (int i = 0; i < 100 || playout_count < 5000; ++i) {
+  int sum = 100;
+  for (int i = 0; i < 2000 || playout_count < 100000; ++i) {
     double max_ucb1 = 0.0;
     int max_ucb1_play = -1;
     for (int j = 0; j < movable_list.size(); ++j) {
@@ -186,9 +178,9 @@ int Monte_Carlo_search(const grid::Grid& grid) {
 }
 
 int search(const grid::Grid& grid) {
-  // return Monte_Carlo_search(grid);
+  return Monte_Carlo_search(grid);
   // return alpha_beta_search(grid);
-  return simple_search(grid);
+  // return simple_search(grid);
 }
 
 } // namespace search
