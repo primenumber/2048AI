@@ -201,10 +201,15 @@ int combination_search(const grid::Grid& grid) {
 }
 
 int search(const grid::Grid& grid) {
+  using std::begin;
+  using std::end;
+  using std::max_element;
   // return Monte_Carlo_search(grid);
   // return alpha_beta_search(grid);
   // return simple_search(grid);
-  return combination_search(grid);
+  // return combination_search(grid);
+  auto simple_search_scores = simple_search(grid);
+  return max_element(begin(simple_search_scores), end(simple_search_scores)) - begin(simple_search_scores);
 }
 
 } // namespace search

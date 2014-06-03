@@ -135,17 +135,17 @@ int corner_score(const grid::Grid& grid) {
 }
 
 int asi_score(const grid::Grid& grid) {
-  constexpr int vtable[2][4][4] = {
+  constexpr int vtable[2][16] = {
     {
-      {80, 40, 40, 50},
-      {35, 10, 10, 10},
-      { 3,  1,  1,  3},
-      { 1,  1,  1,  1}
+      80, 40, 40, 50,
+      35, 10, 10, 10,
+       3,  1,  1,  3,
+       1,  1,  1,  1
     },{
-      {50, 40, 40, 80},
-      {10, 10, 10, 35},
-      { 3,  1,  1,  3},
-      { 1,  1,  1,  1}
+      50, 40, 40, 80,
+      10, 10, 10, 35,
+       3,  1,  1,  3,
+       1,  1,  1,  1
     }
   };
   int vmax = 0;
@@ -153,10 +153,8 @@ int asi_score(const grid::Grid& grid) {
     grid::Grid r_grid = grid.Rotate(i);
     for (int j = 0; j < 2; ++j) {
       int sum = 0;
-      for (int k = 0; k < 4; ++k) {
-        for (int l = 0; l < 4; ++l) {
-          sum += vtable[j][k][l] * r_grid.at(k, l);
-        }
+      for (int k = 0; k < 16; ++k) {
+        sum += vtable[j][k] << r_grid.tiles[k];
       }
       vmax = std::max(vmax, sum);
     }
