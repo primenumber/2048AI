@@ -1,3 +1,4 @@
+#!/usr/bin/ruby
 # encoding : utf-8
 require 'curses'
 require 'open-uri'
@@ -67,6 +68,7 @@ class Game
     return json_data
   end
   def start(window)
+    start_time = Time.now
     @window = window
     init_grid
     json_data = get_json(HOST+'/hi/start/json')
@@ -84,8 +86,9 @@ class Game
     IO.popen('./2048ai',"r+") do |io|
       io.puts str
       for line in io
+        difftime = Time.now - start_time
         @window.setpos(8, 1)
-        @window.addstr(cnt.to_s)
+        @window.addstr(sprintf("%6d moves, %6d seconds", cnt, difftime))
         @window.refresh
         data = JSON.parse(line)
         case data["type"]
@@ -180,33 +183,29 @@ Curses::init_pair(15 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
 Curses::init_pair(16 ,Curses::COLOR_WHITE  ,Curses::COLOR_BLACK  )
 Curses::init_pair(17 ,Curses::COLOR_BLACK  ,Curses::COLOR_CYAN   )
 
-WINDOW_NUM = 3
 $root_window = Window_Wrapper.new
 $root_window.setpos(0, 0)
 $root_window.addstr("great AI - 2048 AI")
 $root_window.refresh
-$window = Array.new(WINDOW_NUM)
-$grids = Array.new(WINDOW_NUM)
-for i in 0...WINDOW_NUM
-  $window[i] = $root_window.subwin(13, 29, 1, 30 * i)
-  $window[i].box(?|,?-,?+)
-  $grids[i] = init_window($window[i])
-  $window[i].refresh
-end
+$window = $root_window.subwin(13, 29, 1, 0)
+$window.box(?|,?-,?+)
+$grids = init_window($window)
+$window.refresh
 loop do
+  Curses::setpos(3, 30)
+  Curses::addstr("command> ")
   line = Curses::getstr
   case line
   when "quit" then
     break
   when "go" then
-    threads = Array.new
-    for i in 0...WINDOW_NUM
-      threads.push(Thread.start(i) {|i|
-        game = Game.new
-        game.start($window[i])
-      })
-    end
-    threads.each{|th| th.join}
+    Curses::setpos(4, 30)
+    Curses::addstr("                 ");
+    game = Game.new
+    game.start($window)
+  else
+    Curses::setpos(4, 30)
+    Curses::addstr("command not found")
   end
 end
 Curses::close_screen
