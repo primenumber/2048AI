@@ -74,23 +74,27 @@ int alpha_beta_host(grid::Grid grid,
   return beta;
 }
 
-int alpha_beta_search(const grid::Grid& grid) {
+std::array<int, 4> alpha_beta_search(const grid::Grid& grid) {
   int optimal = -1;
   int now_score = score::static_score(grid);
   auto movable = grid.movable_directions();
+  std::array<int, 4> scores = {{0, 0, 0, 0}};
   for (int kDepth = 3; kDepth < 40; ++kDepth) {
-    std::map<grid::Grid, Value> scores;
+    std::map<grid::Grid, Value> scores_map;
     auto start = std::chrono::system_clock::now();
     int alpha = -1000000000;
     int beta = 1000000000;
     int score_sum = 0;
     for (grid::Direction dir : movable) {
       grid::Grid moved = grid.move(dir);
-      alpha_beta_host(std::move(moved), scores, now_score, now_score + 1, kDepth - 1);
-      int score = alpha_beta_host(std::move(moved), scores, alpha, beta, kDepth - 1);
+      alpha_beta_host(std::move(moved), scores_map, now_score, now_score + 1, kDepth - 1);
+      int score = alpha_beta_host(std::move(moved), scores_map, alpha, beta, kDepth - 1);
       if (score > alpha || optimal == -1) {
         alpha = score;
         optimal = dir;
+        scores[dir] = score;
+      } else {
+        scores[dir] = std::min(alpha - 1, score);
       }
       score_sum += score;
     }
@@ -103,7 +107,7 @@ int alpha_beta_search(const grid::Grid& grid) {
     now_score = score_sum / movable.size();
   }
   assert(optimal != -1);
-  return optimal;
+  return scores;
 }
 
 struct Play {
@@ -134,12 +138,11 @@ std::pair<int64_t, int> playout(const grid::Grid& grid, int direction, int depth
   }
 }
 
-int Monte_Carlo_search(const grid::Grid& grid) {
+std::array<double, 4> Monte_Carlo_search(const grid::Grid& grid) {
   std::vector<Play> movable_list;
   for (int i = 0; i < 4; ++i)
     if (grid.is_movable(i))
       movable_list.emplace_back(i);
-  if (movable_list.size() == 1) return movable_list.front().direction;
   int playout_count = 0;
   for (auto& play : movable_list) {
     auto result = playout(grid, play.direction, 100);
@@ -164,23 +167,44 @@ int Monte_Carlo_search(const grid::Grid& grid) {
     selecetd_play.playout(result.first);
     playout_count += result.second;
   }
-  double max_average_score = 0.0;
-  int max_average_score_direction = -1;
+  std::array<double, 4> scores = {{0.0, 0.0, 0.0, 0.0}};
   for (Play& play : movable_list) {
     double average = (double)play.score_sum / play.search_num;
-    if (average > max_average_score) {
-      max_average_score = average;
-      max_average_score_direction = play.direction;
-    }
+    scores[play.direction] = average;
   }
-  std::cout << "{\"type\":\"debug\",\"score\":"<<max_average_score<<"}" << std::endl;
-  return max_average_score_direction;
+  return scores;
+}
+
+int calc_ideal_score(grid::Grid grid) {
+  std::array<int, 16> sorted_score = {
+    {1,1,1,1,1,1,3,3,10,10,10,35,40,40,50,80}
+  };
+  std::sort(std::begin(grid.tiles), std::end(grid.tiles));
+  return std::inner_product(std::begin(grid.tiles), std::end(grid.tiles),
+      std::begin(sorted_score), 0, std::plus<int>(), [](int g, int s) { return s << g; });
+}
+
+int combination_search(const grid::Grid& grid) {
+  using std::begin;
+  using std::end;
+  using std::max_element;
+  auto simple_search_scores = simple_search(grid);
+  int ideal_score = calc_ideal_score(grid);
+  int simple_search_max = *max_element(begin(simple_search_scores), end(simple_search_scores));
+  std::cout << "{\"type\":\"debug\",\"score\":" << ((double)ideal_score / simple_search_max) << "}" << std::endl;
+  if (simple_search_max * 2 < ideal_score) {
+    auto Monte_Carlo_scores = Monte_Carlo_search(grid);
+    return max_element(begin(Monte_Carlo_scores), end(Monte_Carlo_scores)) - begin(Monte_Carlo_scores);
+  } else {
+    return max_element(begin(simple_search_scores), end(simple_search_scores)) - begin(simple_search_scores);
+  }
 }
 
 int search(const grid::Grid& grid) {
-  return Monte_Carlo_search(grid);
+  // return Monte_Carlo_search(grid);
   // return alpha_beta_search(grid);
   // return simple_search(grid);
+  return combination_search(grid);
 }
 
 } // namespace search

@@ -13,7 +13,7 @@ constexpr int max_weight        =   0;
 constexpr int sq_sum_weight     =   0;
 constexpr int divided_weight    =   0;
 constexpr int max_space_weight  =   0;
-constexpr int asi_weight        = 100;
+constexpr int asi_weight        =   1;
 
 int zero_score(const grid::Grid& grid) {
   int zero_number = 0;

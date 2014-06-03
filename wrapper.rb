@@ -105,7 +105,7 @@ class Game
           cnt += 1
         when "debug" then
           @window.setpos(17, 1)
-          @window.addstr(sprintf("depth: %6d", data["score"]))
+          @window.addstr(sprintf("depth: %6f", data["score"]))
         end
       end
       @window.setpos(20, 1)

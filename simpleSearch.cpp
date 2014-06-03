@@ -41,7 +41,7 @@ bool operator>(const HistoryGrid& lhs, const HistoryGrid& rhs) {
   return lhs.score > rhs.score;
 }
 
-int simple_search(const grid::Grid& grid) {
+std::array<int, 4> simple_search(const grid::Grid& grid) {
   const int max_node = 10000;
   const int max_depth = 8;
   std::vector<HistoryGrid> all_grids = HistoryGrid(grid, 0).getAllNextStatesFillWith2();
@@ -60,9 +60,12 @@ int simple_search(const grid::Grid& grid) {
     if (all_grids.size() > max_node) 
       all_grids.resize(max_node, HistoryGrid(grid));
   }
-  return all_grids.front().direction;
+  std::array<int, 4> scores = {{0, 0, 0, 0}};
+  for (const auto& last_grid : all_grids) {
+    scores[last_grid.direction] = std::max(scores[last_grid.direction], last_grid.score);
+  }
+  return scores;
 }
-
 
 } // namespace search
 } // namespace ai2048
