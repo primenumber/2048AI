@@ -88,7 +88,7 @@ class Game
       for line in io
         difftime = Time.now - start_time
         @window.setpos(8, 1)
-        @window.addstr(sprintf("%6d moves, %6d seconds", cnt, difftime))
+        @window.addstr(sprintf("%6d moves, %5d seconds", cnt, difftime))
         @window.refresh
         data = JSON.parse(line)
         case data["type"]
