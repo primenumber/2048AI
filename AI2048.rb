@@ -193,6 +193,8 @@ $grids = init_window($window)
 $window.refresh
 loop do
   Curses::setpos(3, 30)
+  Curses::addstr("                 ");
+  Curses::setpos(3, 30)
   Curses::addstr("command> ")
   line = Curses::getstr
   case line
