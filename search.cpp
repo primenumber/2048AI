@@ -11,6 +11,8 @@ extern std::mt19937 mt;
 namespace ai2048 {
 namespace search {
 
+std::map<grid::Grid, double> grids;
+
 int alpha_beta_host(const grid::Grid, std::map<grid::Grid, Value>&, int, int, int);
 
 int alpha_beta_player(const grid::Grid& grid,
@@ -107,6 +109,64 @@ std::array<int, 4> alpha_beta_search(const grid::Grid& grid) {
     now_score = score_sum / movable.size();
   }
   assert(optimal != -1);
+  return scores;
+}
+
+double great_search_host(grid::Grid grid, int depth);
+
+double great_search_player(const grid::Grid& grid, int depth) {
+  auto itr = grids.find(grid);
+  if (itr != std::end(grids)) {
+    return itr->second;
+  }
+  if (depth == 0) {
+    double score = score::static_score_light(grid);
+    grids.insert(std::make_pair(grid, score));
+    return score;
+  } else {
+    auto movables = grid.movable_directions();
+    if (movables.empty()) return score::static_score_light(grid) - 10000000;
+    double max_score = -1000000000;
+    for (auto direction : movables) {
+      grid::Grid moved = grid.move(direction);
+      max_score = std::max(max_score, great_search_host(moved, depth - 1));
+    }
+    grids.insert(std::make_pair(grid, max_score));
+    return max_score;
+  }
+}
+
+double great_search_host(grid::Grid grid, int depth) {
+  auto zeros = grid.zero_tiles();
+  double score = 0.0;
+  int size = zeros.size();
+  for (auto tile : zeros) {
+    grid[tile.first][tile.second] = 1;
+    score += (1.0 / size) * 0.9 * great_search_player(grid, depth);
+    grid[tile.first][tile.second] = 2;
+    score += (1.0 / size) * 0.1 * great_search_player(grid, depth);
+    grid[tile.first][tile.second] = 0;
+  }
+  return score;
+}
+
+std::array<double, 4> great_search(const grid::Grid& grid) {
+  auto movables = grid.movable_directions();
+  std::array<double, 4> scores;
+  for (int depth = 2; depth <= 20; ++depth) {
+    grids.clear();
+    auto start = std::chrono::system_clock::now();
+    std::fill(std::begin(scores), std::end(scores), -1000000000.0);
+    for (auto direction : movables) {
+      grid::Grid moved = grid.move(direction);
+      scores[direction] = great_search_host(moved, depth);
+    }
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = end - start;
+    if (elapsed.count() > 10000) {
+      break;
+    }
+  }
   return scores;
 }
 
@@ -208,8 +268,8 @@ int search(const grid::Grid& grid) {
   // return alpha_beta_search(grid);
   // return simple_search(grid);
   // return combination_search(grid);
-  auto simple_search_scores = simple_search(grid);
-  return max_element(begin(simple_search_scores), end(simple_search_scores)) - begin(simple_search_scores);
+  auto search_scores = great_search(grid);
+  return max_element(begin(search_scores), end(search_scores)) - begin(search_scores);
 }
 
 } // namespace search

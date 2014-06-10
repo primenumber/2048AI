@@ -14,6 +14,9 @@ constexpr int sq_sum_weight     =   0;
 constexpr int divided_weight    =   0;
 constexpr int max_space_weight  =   0;
 constexpr int asi_weight        =   1;
+constexpr int neighbors_weight  =  -2;
+constexpr int sum_weight        =   8;
+constexpr int estimscr_weight   =   1;
 
 int zero_score(const grid::Grid& grid) {
   int zero_number = 0;
@@ -162,6 +165,23 @@ int asi_score(const grid::Grid& grid) {
   return vmax;
 }
 
+int neighbors_score(const grid::Grid& grid) {
+  int score = 0;
+  int di[] = {1, 0};
+  int dj[] = {0, 1};
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      for (int k = 0; k < 2; ++k) {
+        int ni = i + di[k];
+        int nj = j + dj[k];
+        if (ni >= 4 || nj >= 4) continue;
+        score += abs(grid.at(i,j) - grid.at(ni,nj));
+      }
+    }
+  }
+  return score;
+}
+
 int static_score(const grid::Grid& grid) {
   //int max_number = 0;
   //for (int i = 0; i < 4; ++i)
@@ -181,14 +201,9 @@ int static_score(const grid::Grid& grid) {
 }
 
 int static_score_light(const grid::Grid& grid) {
-  int max_number = 0;
-  for (int i = 0; i < 4; ++i)
-    for (int j = 0; j < 4; ++j)
-      max_number = std::max(max_number, grid.at(i, j));
-  return sorted_score(grid) * max_number * sorted_weight
-      + corner_score(grid) * corner_weight
-      + std::log(zero_score(grid)) * max_number * zero_weight
-      + std::sqrt(grid.sq_sum_tiles()) * sq_sum_weight;
+  return neighbors_weight * neighbors_score(grid)
+      + sum_weight * grid.sum_tiles()
+      + estimscr_weight * grid.estimate_score();
 }
 
 } // namespace score

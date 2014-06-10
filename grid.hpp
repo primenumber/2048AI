@@ -106,6 +106,7 @@ union Grid {
   Grid move(Direction) const;
   int move_this(Direction);
   int sum_tiles() const;
+  int estimate_score() const;
   int64_t sq_sum_tiles() const;
   Grid& Transpose();
   Grid& FlipHorizontal();

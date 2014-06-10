@@ -17,6 +17,7 @@ struct Value {
 int search(const grid::Grid& grid);
 
 std::array<int, 4> simple_search(const grid::Grid& grid);
+std::array<double, 4> great_search(const grid::Grid& grid);
 std::array<int, 4> alpha_beta_search(const grid::Grid& grid);
 std::array<double, 4> Monte_Carlo_search(const grid::Grid& grid);
 

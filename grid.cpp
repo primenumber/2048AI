@@ -111,6 +111,13 @@ int Grid::sum_tiles() const {
   return sum;
 }
 
+int Grid::estimate_score() const {
+  int sum = 0;
+  for (int i = 0; i < 16; ++i)
+    sum += (int)tiles[i] << tiles[i];
+  return sum;
+}
+
 int64_t Grid::sq_sum_tiles() const {
   int64_t sum = 0;
   for (int i = 0; i < 4; ++i)
