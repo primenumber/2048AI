@@ -83,7 +83,7 @@ class Game
       end
     end
     cnt = 0
-    IO.popen('./2048ai',"r+") do |io|
+    IO.popen('./2048ai 2> log.txt',"r+") do |io|
       io.puts str
       for line in io
         difftime = Time.now - start_time
