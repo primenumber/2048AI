@@ -6,10 +6,15 @@
 #include "search.hpp"
 #include "gamedag.hpp"
 
+void init() {
+  init_random();
+  ai2048::grid::Line::Init();
+  ai2048::score::Init();
+}
+
 int main() {
   using namespace ai2048::grid;
-  init_random();
-  Line::Init();
+  init();
   while (true) {
     ai2048::grid::Grid grid;
     for (auto& a : grid.lines) {

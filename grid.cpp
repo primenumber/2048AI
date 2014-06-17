@@ -3,15 +3,22 @@
 namespace ai2048 {
 namespace grid {
 
-std::array<Line, (1 << 20)> Line::move_array;
-std::array<bool, (1 << 20)> Line::movable_array;
+std::vector<Line> Line::move_array;
+std::vector<bool> Line::movable_array;
+std::vector<int> Line::sum_array;
+std::vector<int> Line::estimscr_array;
 
 void Line::Init() {
-  for (int i = 0; i < (1 << 20); ++i) {
-    Line c_line(make_from_20bit(i));
-    move_array[i] = c_line.move_impl();
-    movable_array[i] = (make_from_20bit(i) != move_array[i]);
-  }
+  move_array = MakeLineTable<Line>([](Line l){ return l.move_impl(); });
+  movable_array = MakeLineTable<bool>([](Line l){ return l != Line(l).move_impl(); });
+  sum_array = MakeLineTable<int>([](Line l){ return l.at(0) + l.at(1) + l.at(2) + l.at(3); });
+  estimscr_array = MakeLineTable<int>([](Line l){
+    int sum = 0;
+    for (int i = 0; i < 4; ++i) {
+      sum += l.tiles[i] << l.tiles[i];
+    }
+    return sum;
+  });
 }
 
 Line& Line::move_impl() {
@@ -106,15 +113,14 @@ Grid Grid::move(Direction direction) const {
 int Grid::sum_tiles() const {
   int sum = 0;
   for (int i = 0; i < 4; ++i)
-    for (int j = 0; j < 4; ++j)
-      sum += at(i, j);
+    sum += lines[i].sum();
   return sum;
 }
 
 int Grid::estimate_score() const {
   int sum = 0;
-  for (int i = 0; i < 16; ++i)
-    sum += (int)tiles[i] << tiles[i];
+  for (int i = 0; i < 4; ++i)
+    sum += lines[i].estimate_score();
   return sum;
 }
 

@@ -5,13 +5,14 @@
 #include <utility>
 #include <vector>
 #include <chrono>
+#include <unordered_map>
 
 extern std::mt19937 mt;
 
 namespace ai2048 {
 namespace search {
 
-std::map<grid::Grid, double> grids;
+std::unordered_map<grid::Grid, double> grids;
 
 int alpha_beta_host(const grid::Grid, std::map<grid::Grid, Value>&, int, int, int);
 
@@ -164,6 +165,7 @@ std::array<double, 4> great_search(const grid::Grid& grid) {
     auto end = std::chrono::system_clock::now();
     auto elapsed = end - start;
     if (elapsed.count() > 10000) {
+      std::cerr << "depth: " << depth + 1 << std::endl;
       break;
     }
   }

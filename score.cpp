@@ -18,6 +18,12 @@ constexpr int neighbors_weight  =  -2;
 constexpr int sum_weight        =   8;
 constexpr int estimscr_weight   =   1;
 
+void neighbors_score_init();
+
+void Init() {
+  neighbors_score_init();
+}
+
 int zero_score(const grid::Grid& grid) {
   int zero_number = 0;
   for (int i = 0; i < 4; ++i)
@@ -165,19 +171,26 @@ int asi_score(const grid::Grid& grid) {
   return vmax;
 }
 
+std::array<uint32_t, (1 << 20)> neighbors_scores_array;
+
+void neighbors_score_init() {
+  using grid::Line;
+  for (int32_t i = 0; i < (1 << 20); ++i) {
+    Line line(Line::make_from_20bit(i));
+    int score = 0;
+    for (int j = 0; j < 3; ++j) {
+      score += abs(line.at(j) - line.at(j+1));
+    }
+    neighbors_scores_array[i] = score;
+  }
+}
+
 int neighbors_score(const grid::Grid& grid) {
   int score = 0;
-  int di[] = {1, 0};
-  int dj[] = {0, 1};
+  grid::Grid tr = grid::Grid(grid).Transpose();
   for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      for (int k = 0; k < 2; ++k) {
-        int ni = i + di[k];
-        int nj = j + dj[k];
-        if (ni >= 4 || nj >= 4) continue;
-        score += abs(grid.at(i,j) - grid.at(ni,nj));
-      }
-    }
+    score += neighbors_scores_array[grid::Line::to20bit(grid.lines[i].data)];
+    score += neighbors_scores_array[grid::Line::to20bit(tr.lines[i].data)];
   }
   return score;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <algorithm>
 #include <array>
 #include <utility>
@@ -21,6 +22,9 @@ constexpr std::array<int, 18> value_table = {{
   0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072
 }};
 
+constexpr uint32_t MinimumLineBits = 20;
+constexpr uint32_t LineArraySize = 1 << MinimumLineBits;
+
 union Line {
  public:
   //member values
@@ -33,8 +37,13 @@ union Line {
   const uint8_t& operator[](const int index) const { return tiles[index]; }
   uint8_t& operator[](const int index) { return tiles[index]; }
   int at(const int index) const {
-    int value = 1 << tiles[index];
-    return value > 1 ? value : 0;
+    return value_table[tiles[index]];
+  }
+  int sum() const {
+    return sum_array[to20bit(data)];
+  }
+  int estimate_score() const {
+    return estimscr_array[to20bit(data)];
   }
   void set(const int index, int value) {
     tiles[index] = std::find(std::begin(value_table), std::end(value_table), value) - std::begin(value_table);
@@ -60,8 +69,10 @@ union Line {
     return ss.str();
   }
   //static values
-  static std::array<Line, (1 << 20)> move_array;
-  static std::array<bool, (1 << 20)> movable_array;
+  static std::vector<Line> move_array;
+  static std::vector<bool> movable_array;
+  static std::vector<int> sum_array;
+  static std::vector<int> estimscr_array;
   //static functions
   static void Init();
   static Line make_from_20bit(const uint32_t data_) {
@@ -79,6 +90,13 @@ union Line {
     data_ = ((data_ & 0xFFFF0000) >> 16) | ((data_ & 0x0000FFFF) << 16);
     data_ = ((data_ & 0xFF00FF00) >> 8) | ((data_ & 0x00FF00FF) << 8);
     return data_;
+  }
+  template<typename T>
+  static std::vector<T> MakeLineTable(const std::function<T(Line)>& func) {
+    std::vector<T> result(LineArraySize);
+    int i(0);
+    std::generate(std::begin(result), std::end(result), [&]{ return func(make_from_20bit(i++)); });
+    return result;
   }
  private:
   Line& move_impl();
@@ -121,6 +139,17 @@ bool operator==(const Line&, const Line&);
 bool operator!=(const Line&, const Line&);
 bool operator==(const Grid&, const Grid&);
 
-
 } // namespace grid
 } // namespace ai2048
+
+namespace std {
+
+template<>
+class hash<ai2048::grid::Grid> {
+ public:
+  size_t operator()(const ai2048::grid::Grid& grid) const {
+    return grid.double_lines[0] ^ grid.double_lines[1];
+  }
+};
+
+} // namespace std
