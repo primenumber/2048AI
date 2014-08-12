@@ -15,6 +15,7 @@ struct Value {
 };
 
 int search(const grid::Grid& grid);
+grid::Direction opti(const grid::Grid& grid);
 
 std::array<int, 4> simple_search(const grid::Grid& grid);
 std::array<double, 4> great_search(const grid::Grid& grid);

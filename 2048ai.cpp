@@ -24,7 +24,7 @@ int main() {
         a.set(i, v);
       }
     }
-    ai2048::grid::Direction move = ai2048::search::search(grid);
+    ai2048::grid::Direction move = ai2048::search::opti(grid);
     std::cout << "{\"type\":\"move\",\"direction\":"<< move <<"}"<< std::endl;
   }
   return 0;

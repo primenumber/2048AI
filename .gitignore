@@ -1,4 +1,6 @@
 *.swp
 *.o
 2048ai
+calcer
+log.txt
 host.yml

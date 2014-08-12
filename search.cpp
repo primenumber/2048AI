@@ -164,7 +164,7 @@ std::array<double, 4> great_search(const grid::Grid& grid) {
     }
     auto end = std::chrono::system_clock::now();
     auto elapsed = end - start;
-    if (elapsed.count() > 10000) {
+    if (elapsed.count() > 30000) {
       std::cerr << "depth: " << depth + 1 << std::endl;
       break;
     }

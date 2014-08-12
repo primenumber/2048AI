@@ -67,6 +67,7 @@ class Game
     return json_data
   end
   def start(window)
+    start_time = Time.now
     @window = window
     init_grid
     json_data = get_json(HOST+'/hi/start/json')
@@ -81,11 +82,12 @@ class Game
       end
     end
     cnt = 0
-    IO.popen('./2048ai',"r+") do |io|
+    IO.popen('./2048ai 2> log.txt',"r+") do |io|
       io.puts str
       for line in io
+        difftime = Time.now - start_time
         @window.setpos(8, 1)
-        @window.addstr(cnt.to_s)
+        @window.addstr(sprintf("%6d moves, %5d seconds", cnt, difftime))
         @window.refresh
         data = JSON.parse(line)
         case data["type"]
