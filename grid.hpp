@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <array>
+#include <functional>
 #include <utility>
 #include <vector>
 #include <sstream>
@@ -145,7 +146,7 @@ bool operator==(const Grid&, const Grid&);
 namespace std {
 
 template<>
-class hash<ai2048::grid::Grid> {
+struct hash<ai2048::grid::Grid> {
  public:
   size_t operator()(const ai2048::grid::Grid& grid) const {
     return grid.double_lines[0] ^ grid.double_lines[1];

@@ -45,13 +45,13 @@ grid::Direction opti(const grid::Grid& grid) {
       int32_t bits = to24bit(rotated);
       for (int j = 0; j < 4; ++j) {
         int goal = rotated.tiles[8+j];
-        if (goal >= 8) continue;
+        if (goal >= 8 || goal <= 4) continue;
         auto p = optimove_impl(bits, j, goal);
         Direction dir = (p.second + i) % 4;
         Grid cp(rotated);
         for (int k = 0; k < 8; ++k) cp.tiles[k] = 0;
         ++cp.tiles[8 + j];
-        double pt = score::static_score_light(cp) * p.first;
+        double pt = score::static_score_light(cp) * pow(p.first, 2.0);
         scores[dir] = std::max(scores[dir] , pt);
       }
     }
