@@ -156,15 +156,15 @@ std::array<double, 4> great_search(const grid::Grid& grid) {
   std::array<double, 4> scores;
   for (int depth = 2; depth <= 20; ++depth) {
     grids.clear();
-    auto start = std::chrono::system_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
     std::fill(std::begin(scores), std::end(scores), -1000000000.0);
     for (auto direction : movables) {
       grid::Grid moved = grid.move(direction);
       scores[direction] = great_search_host(moved, depth);
     }
-    auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
-    if (elapsed.count() > 30000) {
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    if (elapsed.count() > 0.003) {
       std::cerr << "depth: " << depth + 1 << std::endl;
       break;
     }
