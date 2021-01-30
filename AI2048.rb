@@ -9,7 +9,7 @@ if File.exist?('host.yml') then
   config = YAML.load_file('host.yml')
   HOST = config["host"]
 else
-  HOST = 'http://2048.semantics3.com'
+  HOST = 'http://localhost:8080'
 end
 
 $move_direction_str = ["^",">","v","<"]
