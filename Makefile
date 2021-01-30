@@ -1,5 +1,5 @@
 CXX				= clang++
-CXXFLAGS	= -O3 --std=c++11 -Wall -Wextra -Weffc++
+CXXFLAGS	= -O2 -march=native -mtune=native --std=c++17 -Wall -Wextra -Weffc++
 LIBOBJS			= grid.o score.o search.o random.o game.o gamedag.o simpleSearch.o tableSearch.o
 OBJS			= 2048ai.o $(LIBOBJS)
 CALCOBJS	= calc.o $(LIBOBJS)
